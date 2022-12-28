@@ -1,0 +1,3 @@
+window.env = {
+  "API_TOKEN": "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjIxNDA0MDM4MSwidWlkIjozNjI3NTczMSwiaWFkIjoiMjAyMi0xMi0yN1QyMToxNDoyMS4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTQwMzg2NDEsInJnbiI6InVzZTEifQ.fvdeapJOekDhanRdAvC-1PSd0YuInnAm6sfarx78QRc"
+};
