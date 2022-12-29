@@ -16,7 +16,6 @@ const App = () => {
   ])
 
   useEffect(() => {
-    const colTypes = new Set(["name", "board-relation", "multiple-person", "color", "date", "text", "long-text", "numeric", "dropdown"]);
     // Notice this method notifies the monday platform that user gains a first value in an app.
     // Read more about it here: https://developer.monday.com/apps/docs/mondayexecute#value-created-for-user/
     monday.execute("valueCreatedForUser");
@@ -30,12 +29,8 @@ const App = () => {
       monday.api(query).then(res => {
         // name board-relation multiple-person color color date text long-text numeric dropdown
         const columns = res.data.boards[0].columns
-        const filteredColumns = columns.filter(col => colTypes.has(col.type))
-        console.log(filteredColumns)
 
-        if (filteredColumns) {
-          setValues(filteredColumns)
-        }
+        setValues(columns)
       })
     }).catch(err => {
       console.log(err)
