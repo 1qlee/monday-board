@@ -6,7 +6,10 @@ const Input = ({ input, jobDetails, setJobDetails }) => {
   const changeInputValue = value => {
     setJobDetails({
       ...jobDetails,
-      [input.id]: value,
+      [input.id]: {
+        ...jobDetails[input.id],
+        text: value,
+      },
     })
   }
 
@@ -17,7 +20,6 @@ const Input = ({ input, jobDetails, setJobDetails }) => {
           required
           onChange={changeInputValue}
           value={jobDetails[input.id].text}
-          placeholder="Enter a project name"
           id={input.id}
         />
       )}
