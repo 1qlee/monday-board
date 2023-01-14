@@ -20,7 +20,8 @@
     "monday-ui-react-core": "^1.54.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "use-keyboard-shortcut": "^1.1.6"
   },
   "eslintConfig": {
     "extends": "react-app"

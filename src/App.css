@@ -11,12 +11,11 @@ fieldset {
   padding: 0;
   margin: 0;
   border: 0;
-  flex: 1;
 }
 
 textarea {
   display: block;
-  background-color: transparent;
+  background-color: var(--primary-background-color) !important;
   border: 1px solid #c3c6d4;
   border-color: var(--ui-border-color);
   border-radius: 4px;
@@ -31,6 +30,7 @@ textarea {
   padding: 8px 16px;
   transition: border-color .1s ease-in;
   transition: border-color var(--motion-productive-medium) ease-in;
+  resize: none;
   width: 200px;
 }
 
@@ -44,8 +44,55 @@ textarea:focus {
   border-color: var(--primary-color);
 }
 
+label {
+  color: var(--primary-text-color);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+input {
+  background-color: var(--primary-background-color) !important;
+}
+
+.has-margin-bottom {
+  margin-bottom: 24px;
+}
+
+.has-white-background {
+  background-color: var(--primary-background-color) !important;
+}
+
+.has-icon-success {
+  svg {
+    color: var(--color-success);
+  }
+}
+
+.is-half-width {
+  width: 50%;
+}
+
+.is-third-width {
+  width: 33%;
+}
+
+.is-quarter-width {
+  width: 25%;
+}
+
 .loader {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.toast {
+  width: 390px;
+  z-index: 999;
+}
+
+.searchbox {
+  max-width: 490px;
 }
