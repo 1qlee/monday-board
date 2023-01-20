@@ -19,6 +19,7 @@ textarea {
   border: 1px solid #c3c6d4;
   border-color: var(--ui-border-color);
   border-radius: 4px;
+  box-sizing: border-box;
   color: #323338;
   color: var(--primary-text-color);
   font-family: Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
@@ -31,7 +32,7 @@ textarea {
   transition: border-color .1s ease-in;
   transition: border-color var(--motion-productive-medium) ease-in;
   resize: none;
-  width: 200px;
+  width: 100%;
 }
 
 textarea:hover {
@@ -64,22 +65,20 @@ input {
   background-color: var(--primary-background-color) !important;
 }
 
-.has-icon-success {
-  svg {
-    color: var(--color-success);
-  }
+.has-icon-success svg {
+  color: var(--color-success);
 }
 
-.is-half-width {
-  width: 50%;
+.large-fieldset {
+  flex: 1 1 50%;
 }
 
-.is-third-width {
-  width: 33%;
+.medium-fieldset {
+  flex: 1 1 25%;
 }
 
-.is-quarter-width {
-  width: 25%;
+.small-fieldset {
+  flex: 1 1 12.5%;
 }
 
 .loader {
@@ -95,4 +94,31 @@ input {
 
 .searchbox {
   max-width: 490px;
+  min-width: 295px;
+  width: 50%;
+}
+
+/* Monday Style Overrides */
+.virtualized-list--wrapper {
+  border-radius: 4px;
+  box-shadow: var(--box-shadow-small);
+  box-sizing: border-box;
+  overflow-x: hidden !important;
+  position: absolute !important;
+  top: 100% !important;
+  width: 100% !important;
+  z-index: 99 !important;
+}
+
+.is-hidden-combobox .virtualized-list--wrapper {
+  display: none;
+}
+
+.combobox-option {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+.combobox--wrapper-list {
+  padding: 0 !important;
 }

@@ -6,7 +6,7 @@ import "monday-ui-react-core/dist/main.css";
 import { Check } from "monday-ui-react-core/icons";
 import useKeyboardShortcut from "use-keyboard-shortcut"
 import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast } from "monday-ui-react-core"
-import Input from "./Input"
+import ColumnField from "./components/ColumnField"
 
 // Usage of mondaySDK example, for more information visit here: https://developer.monday.com/apps/docs/introduction-to-the-sdk/
 const monday = mondaySdk();
@@ -29,7 +29,7 @@ const App = () => {
   const [boardId, setBoardId] = useState(3715125693)
   const [jobDetails, setJobDetails] = useState({})
   const [jobName, setJobName] = useState("")
-  const [jobIdError, setJobIdError] = useState({
+  const [jobIdValidation, setJobIdValidation] = useState({
     text: "",
     status: ""
   })
@@ -38,7 +38,7 @@ const App = () => {
     status: ""
   })
   const [appError, setAppError] = useState("")
-  const colTypes = new Set(["text", "long-text", "numeric"]);
+  const colTypes = new Set(["text", "board-relation", "multiple-person", "color", "date", "dropdown", "long-text", "numeric"]);
   const [loading, setLoading] = useState(true)
   const [fetching, setFetching] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -65,10 +65,18 @@ const App = () => {
       // then convert this array to an object with id:text pairs
       monday.api(columnsQuery).then(res => {
         const columns = res.data.boards[0].columns
+        // filter all columns by the columns specified in settings
         const filteredColumns = columns.filter(col => colTypes.has(col.type))
+        // further filter columns by the columns that have settings_str defined
+        // these column fields will require additional processing to render appropriately
+        const specialColumns = filteredColumns.filter(col => {
+          const colSettings = JSON.parse(col.settings_str)
 
+          return colSettings && Object.keys(colSettings).length > 0 && colSettings.constructor === Object
+        })
+        
         setColumnFields(filteredColumns)
-        setJobDetails(arrayToObj(filteredColumns))
+        setJobDetails(parseColumns(filteredColumns)) // parse filteredColumns and turn it into an object
         setLoading(false)
       });
     }).catch(() => {
@@ -91,20 +99,19 @@ const App = () => {
           const columns = results.column_values
           const filteredColumns = columns.filter(col => colTypes.has(col.type))
           
-          setJobIdError({
+          setJobIdValidation({
             text: "",
             status: "success",
           })
           setJobName(name)
-          setColumnFields(filteredColumns)
-          setJobDetails(arrayToObj(filteredColumns))
+          setJobDetails(parseColumns(filteredColumns))
           setFetching(false)
         }
         else {
           throw new Error("This job number doesn't exist!")
         }
       }).catch(error => {
-        setJobIdError({
+        setJobIdValidation({
           text: "This job number doesn't exist!",
           status: "error",
         })
@@ -113,34 +120,24 @@ const App = () => {
     }
     // else user has searched while leaving the jobId input blank
     else {
-      setJobIdError({
+      setJobIdValidation({
         text: "Please enter a job number!",
         status: "error",
       })
     }
   }
 
-  const arrayToObj = array => {
-    const arrayLength = array.length
-    const objectDummy = {}
-
-    for (let i = 0; i < arrayLength; i++) {
-      objectDummy[array[i].id] = array[i]
-    }
-
-    return objectDummy
-  }
-
   // save new job details or create a new job
   const saveJob = () => {
     // check if the user has inputted a jobName
     if (jobName) {
+      // set up a dummy object to send as column_values in the mutation
       const objectDummy = {}
       const stringifiedJobName = JSON.stringify(jobName)
 
       setSaving(true)
 
-      // jobDetails is an object with column_id: { col_values: value }
+      // jobDetails is an object with column_id: { col_value: value }
       // parse it to create an object with key:value pairs that matches id:text/value so that Monday api can understand it
       for (let job in jobDetails) {
         objectDummy[jobDetails[job].id] = jobDetails[job].text
@@ -162,7 +159,7 @@ const App = () => {
           setSaving(false)
         }).catch(error => {
           // almost always the error will be because of an invalid jobId
-          setJobIdError({
+          setJobIdValidation({
             text: "This job number doesn't exist!",
             status: "error",
           })
@@ -197,8 +194,19 @@ const App = () => {
     }
   }
 
+  const parseColumns = array => {
+    const arrayLength = array.length
+    const objectDummy = {}
+
+    for (let i = 0; i < arrayLength; i++) {
+      objectDummy[array[i].id] = array[i]
+    }
+
+    return objectDummy
+  }
+
   const handleJobId = value => {
-    setJobIdError({})
+    setJobIdValidation({})
     setAppError("")
     setJobId(value)
   }
@@ -262,9 +270,9 @@ const App = () => {
                   onChange={handleJobId}
                   onKeyDown={e => e.key === "Enter" && getJob()}
                   placeholder="Leave blank to create a new job"
-                  iconName={jobIdError.status === "success" && Check}
-                  className={jobIdError.status === "success" && "has-icon-success"}
-                  validation={jobIdError}
+                  iconName={jobIdValidation.status === "success" && Check}
+                  className={jobIdValidation.status === "success" && "has-icon-success"}
+                  validation={jobIdValidation}
                 />
                 <Button
                   disabled={fetching || saving}
@@ -287,7 +295,7 @@ const App = () => {
                 gap={8}
                 wrap={true}
               >
-                <fieldset className="is-third-width">
+                <fieldset className="large-fieldset">
                   <label htmlFor="name">Name</label>
                   <TextField
                     required
@@ -298,11 +306,13 @@ const App = () => {
                     id="name"
                   />
                 </fieldset>
-                {columnFields.map(col => (
-                  <fieldset>
-                    <label htmlFor={col.id}>{col.title}</label>
-                    <Input
-                      input={col}
+                {columnFields.map(field => (
+                  <fieldset className="medium-fieldset">
+                    <label htmlFor={field.id}>{field.title}</label>
+                    <ColumnField
+                      columnFields={columnFields}
+                      monday={monday}
+                      field={field}
                       jobDetails={jobDetails}
                       setJobDetails={setJobDetails}
                     />
