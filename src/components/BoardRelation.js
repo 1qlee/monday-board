@@ -6,21 +6,23 @@ const BoardRelation = ({
   field,
   monday,
 }) => {
-  const [relatedBoardId, setRelatedBoardId] = useState("")
   const [boardItems, setBoardItems] = useState([])
   const [showItems, setShowItems] = useState(false)
   const [loading, setLoading] = useState(true)
   const inputRef = useRef(null)
+
+  const checkObject = object => {
+    return object && object.constructor === Object && Object.keys(object).length > 0
+  }
 
   useEffect(() => {
     // function to parse columnFields and get the board ID of the related board from settings_str
     const getRelatedBoardId = () => {
       if (field.settings_str) {
         const settings = JSON.parse(field.settings_str)
-        console.log(settings)
 
-        if (settings && Object.keys(settings).length > 0 && settings.constructor === Object) {
-          setRelatedBoardId(settings.boardIds[0])
+        if (checkObject(settings)) {
+          return settings.boardIds[0]
         }
       }
       else {
@@ -28,9 +30,8 @@ const BoardRelation = ({
       }
     }
   
-    getRelatedBoardId()
     // get all items from this connected board
-    monday.api(`query { boards (ids: ${relatedBoardId}) { items { id name column_values { text type title value id }}}}`).then(res => {
+    monday.api(`query { boards (ids: ${getRelatedBoardId()}) { items { id name column_values { text type title value id }}}}`).then(res => {
       console.log(res)
       setLoading(false)
       if (res.data.boards[0].items.length > 0) {
@@ -52,19 +53,22 @@ const BoardRelation = ({
     }).catch(error => {
       console.log(error)
     })
-  }, [field, inputRef])
+  }, [field])
 
   // fires when the filter input changes
-  const handleFilterChange = value => {
+  const handleFilterChange = useCallback(value => {
     if (value && value.length > 0) {
       setShowItems(true)
+      const doesItemExist = boardItems.find(item => String(item.label) === value)
+
+      // check if this item already exists in the related board unfortunately we can only use the input value to check
+      if (checkObject(doesItemExist)) {
+      }
     }
     else {
       setShowItems(false)
     }
-
-    changeField(value, "value")
-  }
+  }, [boardItems])
 
   // fires when user clicks on an item in the dropdown
   const handleItemSelection = async value => {

@@ -131,23 +131,26 @@ const App = () => {
   const saveJob = () => {
     // check if the user has inputted a jobName
     if (jobName) {
-      // set up a dummy object to send as column_values in the mutation
-      const objectDummy = {}
       const stringifiedJobName = JSON.stringify(jobName)
+      const replacer = (key, value) => {
+        if (value.constructor === Object) {
+          console.log(value)
+          return JSON.stringify(value)
+        }
+        return value
+      }
 
       setSaving(true)
-
-      // jobDetails is an object with column_id: { col_value: value }
-      // parse it to create an object with key:value pairs that matches id:text/value so that Monday api can understand it
-      for (let job in jobDetails) {
-        objectDummy[jobDetails[job].id] = jobDetails[job].text
-      }
       
       // if jobId exists, we are updating an existing job item
       if (jobId) {
-        objectDummy["name"] = jobName
-        // for some reason we need to stringify twice for Monday api to understand
-        const mutationString = JSON.stringify(JSON.stringify(objectDummy))
+        const namedJobDetails = {
+          ...jobDetails,
+          name: jobName
+        }
+        // turn jobDetails into a JSON string
+        const mutationString = JSON.stringify(namedJobDetails, replacer)
+        console.log(mutationString)
         const updateJob = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
 
         monday.api(updateJob).then(res => {
@@ -158,6 +161,7 @@ const App = () => {
           })
           setSaving(false)
         }).catch(error => {
+          console.log(error)
           // almost always the error will be because of an invalid jobId
           setJobIdValidation({
             text: "This job number doesn't exist!",
@@ -169,7 +173,7 @@ const App = () => {
       // otherwise create a new job
       else {
         // for some reason we need to stringify twice for Monday api to understand
-        const mutationString = JSON.stringify(JSON.stringify(objectDummy))
+        const mutationString = JSON.stringify(jobDetails, replacer)
         const createJob = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
 
         monday.api(createJob).then(res => {
