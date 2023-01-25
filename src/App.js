@@ -131,16 +131,8 @@ const App = () => {
   const saveJob = () => {
     // check if the user has inputted a jobName
     if (jobName) {
-      const stringifiedJobName = JSON.stringify(jobName)
-      const replacer = (key, value) => {
-        if (value.constructor === Object) {
-          console.log(value)
-          return JSON.stringify(value)
-        }
-        return value
-      }
-
       setSaving(true)
+      const stringifiedJobName = JSON.stringify(jobName)
       
       // if jobId exists, we are updating an existing job item
       if (jobId) {
@@ -149,7 +141,7 @@ const App = () => {
           name: jobName
         }
         // turn jobDetails into a JSON string
-        const mutationString = JSON.stringify(namedJobDetails, replacer)
+        const mutationString = JSON.stringify(JSON.stringify(namedJobDetails))
         console.log(mutationString)
         const updateJob = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
 
@@ -173,7 +165,7 @@ const App = () => {
       // otherwise create a new job
       else {
         // for some reason we need to stringify twice for Monday api to understand
-        const mutationString = JSON.stringify(jobDetails, replacer)
+        const mutationString = JSON.stringify(JSON.stringify(jobDetails))
         const createJob = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
 
         monday.api(createJob).then(res => {

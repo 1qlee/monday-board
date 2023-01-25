@@ -13,8 +13,7 @@ const ColumnField = ({
     setJobDetails({
       ...jobDetails,
       [field.id]: {
-        ...jobDetails[field.id],
-        [property]: String(value),
+        [property]: value,
       },
     })
   }

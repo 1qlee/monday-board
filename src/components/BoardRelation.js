@@ -39,12 +39,14 @@ const BoardRelation = ({
         const formattedResults = []
 
         for (let i = 0; i < results.length; i++) {
-          const { name, id } = results[i]
+          const { name, id, type } = results[i]
 
           formattedResults.push({
             id: i,
             label: name,
             itemId: id,
+            type: type,
+            
           })
         }
 
@@ -55,14 +57,24 @@ const BoardRelation = ({
     })
   }, [field])
 
-  // fires when the filter input changes
+  // fires when the filter input changes where value is user input
   const handleFilterChange = useCallback(value => {
     if (value && value.length > 0) {
       setShowItems(true)
-      const doesItemExist = boardItems.find(item => String(item.label) === value)
+      const existingItem = boardItems.find(item => String(item.label) === value)
 
-      // check if this item already exists in the related board unfortunately we can only use the input value to check
-      if (checkObject(doesItemExist)) {
+      // check if this item already exists in the related board using the input value to check (doesn't work for non-unique names)
+      if (checkObject(existingItem)) {
+        console.log("Item exists: ", existingItem)
+        const itemsArray = []
+        const { itemId } = existingItem
+        itemsArray[0] = itemId
+
+        changeField(itemsArray, "item_ids")
+      }
+      // else we will have to create a new item in the related board
+      else {
+        
       }
     }
     else {
@@ -71,13 +83,11 @@ const BoardRelation = ({
   }, [boardItems])
 
   // fires when user clicks on an item in the dropdown
-  const handleItemSelection = async value => {
-    const itemValue = await value
-
+  const handleItemSelection = value => {
     // force async because the value takes some time to come for some reason and await doesn't seem to work
     setTimeout(() => {
       // change the input through useRef children
-      inputRef.current.children[0].children[0].children[0].children[0].children[0].value = itemValue.label
+      inputRef.current.children[0].children[0].children[0].children[0].children[0].value = value.label
       setShowItems(false)
     }, 10)
   }
