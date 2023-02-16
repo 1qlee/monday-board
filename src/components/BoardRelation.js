@@ -3,8 +3,10 @@ import { Combobox } from "monday-ui-react-core"
 
 const BoardRelation = ({
   changeField,
+  connectedBoard,
   field,
   monday,
+  setConnectedBoard,
 }) => {
   const [boardItems, setBoardItems] = useState([])
   const [showItems, setShowItems] = useState(false)
@@ -46,7 +48,6 @@ const BoardRelation = ({
             label: name,
             itemId: id,
             type: type,
-            
           })
         }
 
@@ -71,10 +72,17 @@ const BoardRelation = ({
         itemsArray[0] = itemId
 
         changeField(itemsArray, "item_ids")
+        setConnectedBoard({
+          ...connectedBoard,
+          itemExists: true,
+        })
       }
-      // else we will have to create a new item in the related board
+      // else flag that the item doesn't exist in app's state so that we can create it
       else {
-        
+        setConnectedBoard({
+          ...connectedBoard,
+          itemExists: false,
+        })
       }
     }
     else {

@@ -39,6 +39,10 @@ const App = () => {
   })
   const [appError, setAppError] = useState("")
   const colTypes = new Set(["text", "board-relation", "multiple-person", "color", "date", "dropdown", "long-text", "numeric"]);
+  const [connectedBoard, setConnectedBoard] = useState({
+    id: null,
+    itemExists: false,
+  })
   const [loading, setLoading] = useState(true)
   const [fetching, setFetching] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -129,6 +133,10 @@ const App = () => {
 
   // save new job details or create a new job
   const saveJob = () => {
+    // check if we need to create an item in a connected board
+    if (!itemExists) {
+      const createItemQuery = `mutation { create_item (board_id: )}`
+    }
     // check if the user has inputted a jobName
     if (jobName) {
       setSaving(true)
@@ -143,9 +151,9 @@ const App = () => {
         // turn jobDetails into a JSON string
         const mutationString = JSON.stringify(JSON.stringify(namedJobDetails))
         console.log(mutationString)
-        const updateJob = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
+        const updateJobQuery = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
 
-        monday.api(updateJob).then(res => {
+        monday.api(updateJobQuery).then(res => {
           setToast({
             msg: "Successfully updated job.",
             type: "positive",
@@ -166,9 +174,9 @@ const App = () => {
       else {
         // for some reason we need to stringify twice for Monday api to understand
         const mutationString = JSON.stringify(JSON.stringify(jobDetails))
-        const createJob = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
+        const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
 
-        monday.api(createJob).then(res => {
+        monday.api(createJobQuery).then(res => {
           setToast({
             msg: "Successfully created a new job.",
             type: "positive",
@@ -307,10 +315,12 @@ const App = () => {
                     <label htmlFor={field.id}>{field.title}</label>
                     <ColumnField
                       columnFields={columnFields}
+                      connectedBoard={connectedBoard}
                       monday={monday}
                       field={field}
                       jobDetails={jobDetails}
                       setJobDetails={setJobDetails}
+                      setConnectedBoard={setConnectedBoard}
                     />
                   </fieldset>
                 ))}

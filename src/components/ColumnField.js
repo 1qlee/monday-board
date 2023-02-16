@@ -3,10 +3,12 @@ import { TextField, Label, Dropdown } from "monday-ui-react-core"
 import BoardRelation from "./BoardRelation";
 
 const ColumnField = ({ 
+  connectedBoard,
   field, 
   jobDetails, 
   monday,
   setJobDetails,
+  setConnectedBoard,
 }) => {
 
   const changeField = (value, property) => {
@@ -27,11 +29,11 @@ const ColumnField = ({
       )}
       {field.type === "board-relation" && (
         <BoardRelation 
+          connectedBoard={connectedBoard}
           changeField={changeField}
           field={field}
           monday={monday}
-          jobDetails={jobDetails}
-          setJobDetails={setJobDetails}
+          setConnectedBoard={setConnectedBoard}
         />
       )}
       {field.type === "long-text" && (
