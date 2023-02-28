@@ -21,14 +21,12 @@ const App = () => {
       repeatOnHold: false
     }
   )
-  const [columnFields, setColumnFields] = useState([
-    { title: "Name", type: "text", id: "name", text: "Dummy text", value: "name" },
-    { title: "Price", type: "numeric", id: "price", text: "$0", value: "price" },
-  ])
+  const [columnFields, setColumnFields] = useState([])
   const [jobId, setJobId] = useState("")
   const [boardId, setBoardId] = useState(3715125693)
-  const [jobDetails, setJobDetails] = useState({})
+  const [jobEdits, setJobEdits] = useState({})
   const [jobName, setJobName] = useState("")
+  const [jobDetails, setJobDetails] = useState({})
   const [jobIdValidation, setJobIdValidation] = useState({
     text: "",
     status: ""
@@ -38,10 +36,11 @@ const App = () => {
     status: ""
   })
   const [appError, setAppError] = useState("")
-  const colTypes = new Set(["text", "board-relation", "multiple-person", "color", "date", "dropdown", "long-text", "numeric"]);
+  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date"]); // dropdown, multiple-person
   const [connectedBoard, setConnectedBoard] = useState({
     id: null,
-    itemExists: false,
+    name: "",
+    fieldId: "",
   })
   const [loading, setLoading] = useState(true)
   const [fetching, setFetching] = useState(false)
@@ -62,7 +61,7 @@ const App = () => {
     monday.get("context").then(res => {
       // res should be the context for the current board that the user has installed this app in
       setBoardId(res.data.boardId || 3715125693);
-      const columnsQuery = `query { boards (ids: ${boardId}) { columns { title type id settings_str }}}`;
+      const columnsQuery = `query { boards (ids: ${boardId}) { columns { title type id settings_str }}}`
 
       // query for all columns belonging to this board then filter them based on user-inputtable fields (as defined in const coltypes
       // column query will return an array of objects where each object is a column/field 
@@ -71,16 +70,9 @@ const App = () => {
         const columns = res.data.boards[0].columns
         // filter all columns by the columns specified in settings
         const filteredColumns = columns.filter(col => colTypes.has(col.type))
-        // further filter columns by the columns that have settings_str defined
-        // these column fields will require additional processing to render appropriately
-        const specialColumns = filteredColumns.filter(col => {
-          const colSettings = JSON.parse(col.settings_str)
 
-          return colSettings && Object.keys(colSettings).length > 0 && colSettings.constructor === Object
-        })
-        
         setColumnFields(filteredColumns)
-        setJobDetails(parseColumns(filteredColumns)) // parse filteredColumns and turn it into an object
+        setJobDetails(parseColumnsDefault(filteredColumns)) // manually set default values for certain fields
         setLoading(false)
       });
     }).catch(() => {
@@ -102,7 +94,7 @@ const App = () => {
           const { name } = results
           const columns = results.column_values
           const filteredColumns = columns.filter(col => colTypes.has(col.type))
-          
+
           setJobIdValidation({
             text: "",
             status: "success",
@@ -133,9 +125,27 @@ const App = () => {
 
   // save new job details or create a new job
   const saveJob = () => {
+    console.log(connectedBoard)
+    console.log(jobDetails)
     // check if we need to create an item in a connected board
-    if (!itemExists) {
-      const createItemQuery = `mutation { create_item (board_id: )}`
+    if (connectedBoard.id) {
+      const stringifiedItemName = JSON.stringify(connectedBoard.name)
+      const createItemQuery = `mutation { create_item (board_id: ${connectedBoard.id}, item_name: ${stringifiedItemName}) { id }}`
+      const itemsArray = []
+
+      monday.api(createItemQuery).then(res => {
+        console.log(res)
+        itemsArray[0] = res.id
+
+        setJobDetails({
+          ...jobDetails,
+          [connectedBoard.fieldId]: {
+            item_ids: itemsArray
+          }
+        })
+      }).catch(error => {
+        console.log(error)
+      })
     }
     // check if the user has inputted a jobName
     if (jobName) {
@@ -144,12 +154,12 @@ const App = () => {
       
       // if jobId exists, we are updating an existing job item
       if (jobId) {
-        const namedJobDetails = {
-          ...jobDetails,
+        const newJob = {
+          ...jobEdits,
           name: jobName
         }
-        // turn jobDetails into a JSON string
-        const mutationString = JSON.stringify(JSON.stringify(namedJobDetails))
+        // turn newJob into a JSON string so its readable in Monday
+        const mutationString = JSON.stringify(JSON.stringify(newJob))
         console.log(mutationString)
         const updateJobQuery = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
 
@@ -173,7 +183,8 @@ const App = () => {
       // otherwise create a new job
       else {
         // for some reason we need to stringify twice for Monday api to understand
-        const mutationString = JSON.stringify(JSON.stringify(jobDetails))
+        const mutationString = JSON.stringify(JSON.stringify(jobEdits))
+        console.log(mutationString)
         const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
 
         monday.api(createJobQuery).then(res => {
@@ -207,6 +218,52 @@ const App = () => {
     }
 
     return objectDummy
+  }
+
+  const parseColumnsDefault = array => {
+    const arrayLength = array.length
+    const fromAddress = "Unicorn Graphics\n971 Stewart Ave\nGarden City, NY 11530"
+    const groundTracking = "1z10909203"
+    const defaultEdits = {}
+    const defaultValues = {}
+
+    for (let i = 0; i < arrayLength; i++) {
+      switch(array[i].title) {
+        case "Priority":
+          defaultValues[array[i].id] = {
+            text: "None"
+          }
+          break
+        case "Status":
+          defaultValues[array[i].id] = {
+            text: "Not started"
+          }
+          break
+        case "Shipping method":
+          defaultValues[array[i].id] = {
+            text: "N/A"
+          }
+          break
+        case "Ship from":
+          defaultValues[array[i].id] = {
+            text: fromAddress
+          }
+          defaultEdits[array[i].id] = fromAddress
+          break
+        case "Tracking":
+          defaultValues[array[i].id] = {
+            text: groundTracking
+          }
+          defaultEdits[array[i].id] = groundTracking
+          break
+        default:
+          defaultValues[array[i].id] = array[i]
+      }
+    }
+
+    setJobEdits(defaultEdits)
+
+    return defaultValues
   }
 
   const handleJobId = value => {
@@ -300,7 +357,7 @@ const App = () => {
                 wrap={true}
               >
                 <fieldset className="large-fieldset">
-                  <label htmlFor="name">Name</label>
+                  <label htmlFor="name">Project name</label>
                   <TextField
                     required
                     className="is-flex-full"
@@ -314,13 +371,13 @@ const App = () => {
                   <fieldset className="medium-fieldset">
                     <label htmlFor={field.id}>{field.title}</label>
                     <ColumnField
-                      columnFields={columnFields}
-                      connectedBoard={connectedBoard}
-                      monday={monday}
                       field={field}
                       jobDetails={jobDetails}
-                      setJobDetails={setJobDetails}
+                      jobEdits={jobEdits}
+                      monday={monday}
                       setConnectedBoard={setConnectedBoard}
+                      setJobDetails={setJobDetails}
+                      setJobEdits={setJobEdits}
                     />
                   </fieldset>
                 ))}

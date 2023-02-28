@@ -15,9 +15,10 @@
     "@mondaydotcomorg/monday-cli": "^2.1.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
+    "date-fns": "^2.29.3",
     "eslint-config-react-app": "^7.0.1",
     "monday-sdk-js": "^0.1.4",
-    "monday-ui-react-core": "^1.54.0",
+    "monday-ui-react-core": "^1.97.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@mondaydotcomorg/tunnel": "^0.4.1",
+    "babel-plugin-styled-components": "^2.0.7",
     "concurrently": "^5.2.0",
     "cross-port-killer": "^1.2.1",
     "sass": "^1.54.8"

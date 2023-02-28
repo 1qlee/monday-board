@@ -1,20 +1,31 @@
-import React, { useMemo, useCallback } from "react";
-import { TextField, Label, Dropdown } from "monday-ui-react-core"
+import React from "react";
+import { TextField } from "monday-ui-react-core"
 import BoardRelation from "./BoardRelation";
+import Status from "./Status"
+import Calendar from "./Calendar";
 
 const ColumnField = ({ 
-  connectedBoard,
   field, 
   jobDetails, 
+  jobEdits,
   monday,
-  setJobDetails,
   setConnectedBoard,
+  setJobDetails,
+  setJobEdits,
 }) => {
 
-  const changeField = (value, property) => {
+  const changeJobEdits = value => {
+    setJobEdits({
+      ...jobEdits,
+      [field.id]: value,
+    })
+  }
+
+  const changeJobDetails = (value, property) => {
     setJobDetails({
       ...jobDetails,
       [field.id]: {
+        ...jobDetails[field.id],
         [property]: value,
       },
     })
@@ -25,25 +36,58 @@ const ColumnField = ({
       {field.type === "text" && (
         <TextField
           id={field.id}
+          onChange={value => {
+            changeJobEdits(value)
+            changeJobDetails(value, "text")
+          }}
+          value={jobDetails[field.id].text}
         />
       )}
       {field.type === "board-relation" && (
         <BoardRelation 
-          connectedBoard={connectedBoard}
-          changeField={changeField}
+          changeJobEdits={changeJobEdits}
           field={field}
-          monday={monday}
+          jobDetails={jobDetails}
+          monday={monday} 
           setConnectedBoard={setConnectedBoard}
         />
       )}
       {field.type === "long-text" && (
-        <textarea
-          id={field.id}
-        />
+        <>
+          <textarea
+            id={field.id}
+            rows={3}
+            onChange={e => {
+              changeJobEdits(e.target.value)
+              changeJobDetails(e.target.value, "text")
+            }}
+            value={jobDetails[field.id].text}
+          />
+        </>
       )}
       {field.type === "numeric" && (
         <TextField 
           id={field.id}
+          onChange={value => {
+            changeJobEdits(value)
+            changeJobDetails(value, "text")
+          }}
+          value={jobDetails[field.id].text}
+        />
+      )}
+      {field.type === "color" && (
+        <Status 
+          changeJobEdits={changeJobEdits}
+          field={field}
+          jobDetails={jobDetails}
+        />
+      )}
+      {field.type === "date" && (
+        <Calendar
+          changeJobDetails={changeJobDetails}
+          changeJobEdits={changeJobEdits}
+          field={field}
+          jobDetails={jobDetails}
         />
       )}
     </>

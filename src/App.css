@@ -29,6 +29,7 @@ textarea {
   height: 100%;
   outline: 0;
   padding: 8px 16px;
+  min-height: 88px;
   transition: border-color .1s ease-in;
   transition: border-color var(--motion-productive-medium) ease-in;
   resize: none;
@@ -121,4 +122,99 @@ input {
 
 .combobox--wrapper-list {
   padding: 0 !important;
+}
+
+.combobox--wrapper--custom {
+  position: relative;
+}
+
+.custom--wrapper--input {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99;
+}
+
+.custom--wrapper--input.is-active {
+  display: block;
+}
+
+.custom-input-component {
+  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: var(--font-smoothing-webkit);
+  -moz-osx-font-smoothing: grayscale;
+  -moz-osx-font-smoothing: var(--font-smoothing-moz);
+  border-radius: 4px;
+  border: 1px solid var(--ui-border-color);
+  box-sizing: border-box;
+  color: var(--primary-text-color);
+  font: var(--font-general-label);
+  line-height: 22px;
+  height: 100%;
+  outline: 0;
+  overflow: hidden;
+  padding: 8px 16px;
+  position: relative;
+  text-overflow: ellipsis;
+  transition: border-color .1s ease-in;
+  transition: border-color var(--motion-productive-medium) ease-in;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.custom-input-icon--wrapper {
+  align-items: center;
+  -webkit-appearance: none;
+  border-radius: 4px;
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+}
+
+.custom-input-icon--wrapper svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: all;
+  transform: rotate(0) scale(1);
+  color: var(--icon-color);
+  font-size: 14px;
+  transition: color var(--motion-productive-short) var(--motion-timing-enter), transform var(--motion-productive-short) var(--motion-timing-enter);
+  will-change: transform;
+}
+
+.custom-input-icon--wrapper:hover {
+  background-color: var(--primary-background-hover-color);
+  cursor: pointer;
+}
+
+.chips--wrapper {
+  width: auto !important;
+}
+
+.chips--wrapper.is-active div {
+  color: var(--text-color-on-primary);
+}
+
+.custom-chip-component {
+  height: auto !important;
+}
+
+.date-picker-component {
+  position: absolute;
+  z-index: 100;
+  border: 1px solid var(--ui-border-color);
+  border-radius: 4px;
+}
+
+.date-picker-component div {
+  border-radius: 4px;
 }
