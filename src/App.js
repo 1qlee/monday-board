@@ -1,4 +1,4 @@
-import React, { useCallback, useReducer } from "react";
+import React from "react";
 import { useEffect, useState } from "react";
 import "./App.css";
 import mondaySdk from "monday-sdk-js";
@@ -8,7 +8,6 @@ import useKeyboardShortcut from "use-keyboard-shortcut"
 import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast } from "monday-ui-react-core"
 import ColumnField from "./components/ColumnField"
 
-// Usage of mondaySDK example, for more information visit here: https://developer.monday.com/apps/docs/introduction-to-the-sdk/
 const monday = mondaySdk();
 
 const App = () => {
