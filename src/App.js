@@ -36,7 +36,7 @@ const App = () => {
     status: ""
   })
   const [appError, setAppError] = useState("")
-  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date"]); // dropdown, multiple-person
+  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person"]);
   const [connectedBoard, setConnectedBoard] = useState({
     id: null,
     name: "",

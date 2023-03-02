@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { DatePicker, Button } from "monday-ui-react-core"
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 
 const Calendar = ({
   field,
@@ -21,8 +21,7 @@ const Calendar = ({
 
   const handleButtonText = () => {
     if (jobDetails[field.id].text) {
-      const newDate = new Date(jobDetails[field.id].text)
-      return format(newDate, "MM/dd/yyyy")
+      return format(parseISO(jobDetails[field.id].text), "MM/dd/yyyy")
     }
     else {
       return "Select date"

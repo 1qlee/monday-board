@@ -3,6 +3,7 @@ import { TextField } from "monday-ui-react-core"
 import BoardRelation from "./BoardRelation";
 import Status from "./Status"
 import Calendar from "./Calendar";
+import People from "./People";
 
 const ColumnField = ({ 
   field, 
@@ -88,6 +89,14 @@ const ColumnField = ({
           changeJobEdits={changeJobEdits}
           field={field}
           jobDetails={jobDetails}
+        />
+      )}
+      {field.type === "multiple-person" && (
+        <People 
+          changeJobEdits={changeJobEdits}
+          field={field}
+          jobDetails={jobDetails}
+          monday={monday}
         />
       )}
     </>

@@ -218,3 +218,21 @@ input {
 .date-picker-component div {
   border-radius: 4px;
 }
+
+.list-item-avatar {
+  margin-right: 8px;
+}
+
+.list-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+}
+
+.monday-style-list--dense {
+  height: 100%;
+}
+
+.list-item--xxs {
+  padding: 4px 8px !important;
+}
