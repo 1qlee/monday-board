@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Button, List, ListItem, ListTitle, Avatar, DialogContentContainer, Loader } from "monday-ui-react-core"
 
 const People = ({
-  monday,
+  changeJobEdits,
   field,
   jobDetails,
+  monday,
 }) => {
   const [showList, setShowList] = useState(false)
   const [activePerson, setActivePerson] = useState({
@@ -23,22 +24,25 @@ const People = ({
       setTeams(data.teams)
 
       if (jobDetails[field.id].value) {
-        const activePersonObj = JSON.parse(jobDetails[field.id].value).personsAndTeams[0]
-        const activePersonId = activePersonObj.id
-        const activePersonType = activePersonObj.kind
-        let activePerson;
+        const currentActivePerson = JSON.parse(jobDetails[field.id].value).personsAndTeams[0]
+        const { id, kind } = currentActivePerson
 
-        if (activePersonType === "person") {
-          activePerson = users.find(user => user.id === activePersonId)
-        }
-        if (activePersonType === "team") {
-          activePerson = teams.find(team => team.id === activePersonId)
-        }
+        if (kind === "person") {
+          const activeUser = users.find(user => user.id === id)
 
-        return activePerson
-      }
-      else {
-        return { name: "Select person" }
+          setActivePerson({
+            name: activeUser.name,
+            src: activeUser.photo_thumb_small,
+          })
+        }
+        if (kind === "team") {
+          const activeTeam = teams.find(team => team.id === id)
+
+          setActivePerson({
+            name: activeTeam.name,
+            src: activeTeam.picture_url,
+          })
+        }
       }
 
       setLoading(false)
@@ -48,12 +52,31 @@ const People = ({
     })
   }, [field, jobDetails])
 
+  const handleSetActivePerson = person => {
+    setActivePerson({
+      id: person.id,
+      name: person.name,
+      src: person.src,
+    })
+    changeJobEdits({ personsAndTeams: [{ id: person.id, kind: person.kind }]})
+    setShowList(!showList)
+  }
+
   return (
     <>
-      {showList ? (
+      <Button
+        kind="secondary"
+        size="small"
+        onClick={() => setShowList(!showList)}
+      >
+        <Avatar className="list-item-avatar" src={activePerson.src} size="small" type="img" ></Avatar>
+        {activePerson.name}
+      </Button>
+      {showList && (
         <DialogContentContainer
           style={{
-            height: "205px"
+            height: "204px",
+            position: "absolute",
           }}
         >
           <List
@@ -70,7 +93,11 @@ const People = ({
                   Users
                 </ListTitle>
                 {users.map(user => (
-                  <ListItem key={user.id} size={ListItem.sizes.XXS}>
+                  <ListItem 
+                    key={user.id} 
+                    size={ListItem.sizes.XXS} 
+                    onClick={() => handleSetActivePerson({ id: user.id, name: user.name, src: user.photo_thumb_small, kind: "person" })}
+                  >
                     <Avatar className="list-item-avatar" src={user.photo_thumb_small} size="small" type="img" />
                     {user.name}
                   </ListItem>
@@ -79,7 +106,11 @@ const People = ({
                   Teams
                 </ListTitle>
                 {teams.map(team => (
-                  <ListItem key={team.id} size={ListItem.sizes.XXS}>
+                  <ListItem
+                    key={team.id}
+                    size={ListItem.sizes.XXS}
+                    onClick={() => handleSetActivePerson({ id: team.id, name: team.name, src: team.picture_url, kind: "team" })}
+                  >
                     <Avatar className="list-item-avatar" src={team.picture_url} size="small" type="img" />
                     {team.name}
                   </ListItem>
@@ -88,15 +119,7 @@ const People = ({
             )}
           </List>
         </DialogContentContainer>
-      ) : (
-        <Button
-          kind="secondary"
-          size="small"
-          onClick={() => setShowList(!showList)}
-        >
-          {handleActivePerson()}
-        </Button>
-      )}    
+      )}
     </>
   )
 }
