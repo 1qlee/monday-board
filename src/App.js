@@ -7,6 +7,7 @@ import { Check } from "monday-ui-react-core/icons";
 import useKeyboardShortcut from "use-keyboard-shortcut"
 import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast } from "monday-ui-react-core"
 import ColumnField from "./components/ColumnField"
+import Subitems from "./components/Subitems"
 
 const monday = mondaySdk();
 
@@ -21,6 +22,7 @@ const App = () => {
     }
   )
   const [columnFields, setColumnFields] = useState([])
+  const [subitemBoard, setSubitemBoard] = useState({})
   const [jobId, setJobId] = useState("")
   const [boardId, setBoardId] = useState(3715125693)
   const [jobEdits, setJobEdits] = useState({})
@@ -67,9 +69,11 @@ const App = () => {
       // then convert this array to an object with id:text pairs
       monday.api(columnsQuery).then(res => {
         const columns = res.data.boards[0].columns
+        const subitems = columns.filter(col => col.id === "subitems")
         // filter all columns by the columns specified in settings
         const filteredColumns = columns.filter(col => colTypes.has(col.type))
 
+        setSubitemBoard(JSON.parse(subitems[0].settings_str).boardIds[0])
         setColumnFields(filteredColumns)
         setJobDetails(parseColumnsDefault(filteredColumns)) // manually set default values for certain fields
         setLoading(false)
@@ -85,7 +89,7 @@ const App = () => {
     if (jobId) {
       setFetching(true)
       const jobQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { name column_values { text type title value id }}}}`;
-  
+
       // query for all column values for the specified job (board item)
       monday.api(jobQuery).then(res => {
         if (res.data.boards[0].items.length > 0) {
@@ -150,7 +154,7 @@ const App = () => {
     if (jobName) {
       setSaving(true)
       const stringifiedJobName = JSON.stringify(jobName)
-      
+
       // if jobId exists, we are updating an existing job item
       if (jobId) {
         const newJob = {
@@ -227,7 +231,7 @@ const App = () => {
     const defaultValues = {}
 
     for (let i = 0; i < arrayLength; i++) {
-      switch(array[i].title) {
+      switch (array[i].title) {
         case "Priority":
           defaultValues[array[i].id] = {
             text: "None"
@@ -282,14 +286,14 @@ const App = () => {
     <>
       {loading ? (
         <div className="loader">
-          <Loader 
+          <Loader
             color="primary"
             size={64}
           />
         </div>
       ) : (
         <div className="app">
-          <Toast 
+          <Toast
             children={toast.msg}
             open={toast.open}
             type={toast.type}
@@ -298,7 +302,7 @@ const App = () => {
             className="toast monday-storybook-toast_wrapper"
           />
           {appError && (
-            <AlertBanner 
+            <AlertBanner
               backgroundColor="negative"
               bannerText={appError}
               onClose={() => setAppError("")}
@@ -313,9 +317,9 @@ const App = () => {
             align="Start"
             justify="Start"
           >
-            <Box 
-              border={Box.borders.DEFAULT} 
-              rounded={Box.roundeds.SMALL} 
+            <Box
+              border={Box.borders.DEFAULT}
+              rounded={Box.roundeds.SMALL}
               padding={Box.paddings.MEDIUM}
               backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
               className="searchbox"
@@ -380,6 +384,11 @@ const App = () => {
                     />
                   </fieldset>
                 ))}
+                <Subitems
+                  boardId={subitemBoard}
+                  monday={monday}
+                  colTypes={colTypes}
+                />
               </Flex>
             </Box>
             <Button
