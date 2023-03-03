@@ -196,16 +196,19 @@ input {
   cursor: pointer;
 }
 
-.chips--wrapper {
-  width: auto !important;
-}
-
 .chips--wrapper.is-active div {
   color: var(--text-color-on-primary);
 }
 
 .custom-chip-component {
+  display: flex !important;
   height: auto !important;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.custom-chip-component:not(:last-child) {
+  margin-bottom: 4px;
 }
 
 .date-picker-component {

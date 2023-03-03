@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import mondaySdk from "monday-sdk-js";
 import "monday-ui-react-core/dist/main.css";
-import { Check } from "monday-ui-react-core/icons";
+import { Check, Add } from "monday-ui-react-core/icons";
 import useKeyboardShortcut from "use-keyboard-shortcut"
-import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast } from "monday-ui-react-core"
+import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast, IconButton } from "monday-ui-react-core"
 import ColumnField from "./components/ColumnField"
-import Subitems from "./components/Subitems"
+import SubitemField from "./components/SubitemField"
 
 const monday = mondaySdk();
 
@@ -21,15 +21,16 @@ const App = () => {
       repeatOnHold: false
     }
   )
-  const [columnFields, setColumnFields] = useState([])
-  const [subitemFields, setSubitemFields] = useState([])
-  const [jobId, setJobId] = useState("")
   const [boardId, setBoardId] = useState(3715125693)
-  const [subitemBoardId, setSubitemBoardId] = useState(0)
-  const [jobEdits, setJobEdits] = useState({})
-  const [jobName, setJobName] = useState("")
-  const [subitemDetails, setSubitemDetails] = useState({})
+  const [columnFields, setColumnFields] = useState([])
   const [jobDetails, setJobDetails] = useState({})
+  const [jobEdits, setJobEdits] = useState({})
+  const [jobId, setJobId] = useState("")
+  const [jobName, setJobName] = useState("")
+  const [subitemBoardId, setSubitemBoardId] = useState(0)
+  const [subitemEdits, setSubitemEdits] = useState({})
+  const [subitemItems, setSubitemItems] = useState([])
+  const [subitemFields, setSubitemFields] = useState([])
   const [jobIdValidation, setJobIdValidation] = useState({
     text: "",
     status: ""
@@ -39,7 +40,8 @@ const App = () => {
     status: ""
   })
   const [appError, setAppError] = useState("")
-  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person"]);
+  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person"])
+  const subitemColTypes = new Set(["name", "text", "long-text", "numeric", "color", "date", "dropdown"])
   const [connectedBoard, setConnectedBoard] = useState({
     id: null,
     name: "",
@@ -78,18 +80,19 @@ const App = () => {
         setColumnFields(filteredColumns)
         setJobDetails(parseColumnsDefault(filteredColumns)) // manually set default values for certain fields
 
+        // extract subitems board id 
         return JSON.parse(subitemsColumn[0].settings_str).boardIds[0]
       }).then(parsedBoardId => {
         setSubitemBoardId(parsedBoardId)
+        // query for all columns in the subitem board
         const subitemsQuery = `query { boards (ids: ${parsedBoardId}) { columns { title type id settings_str }}}`
 
         monday.api(subitemsQuery).then(res => {
           const columns = res.data.boards[0].columns
-          const filteredColumns = columns.filter(col => colTypes.has(col.type))
+          const filteredColumns = columns.filter(col => subitemColTypes.has(col.type))
 
-          console.log(filteredColumns)
           setSubitemFields(filteredColumns)
-          setSubitemDetails(parseSubitemsDefault(filteredColumns))
+          setSubitemItems(parseSubitemsDefault(filteredColumns))
           setLoading(false)
         })
       })
@@ -124,13 +127,16 @@ const App = () => {
           throw new Error("This job number doesn't exist!")
         }
       }).then(() => {
-        const subitemQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { subitems { name column_values { text type title value id}}}}}`
+        const subitemQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { subitems { id name column_values { text type title value id}}}}}`
 
         // query for all subitem values
         monday.api(subitemQuery).then(res => {
           const results = res.data.boards[0].items[0].subitems
 
-          setSubitemDetails(parseSubitems(results))
+          if (results.length > 0) {
+            setSubitemItems(parseSubitems(results))
+          }
+
           setFetching(false)
         })
       }).catch(() => {
@@ -252,10 +258,11 @@ const App = () => {
 
     array.forEach(subitem => {
       const objectDummy = {}
-      const { column_values, name } = subitem
-      const filteredColumns = column_values.filter(col => colTypes.has(col.type))
+      const { column_values, name, id } = subitem
+      const filteredColumns = column_values.filter(col => subitemColTypes.has(col.type))
 
-      objectDummy["name"] = name
+      objectDummy["name"] = { text: name }
+      objectDummy["id"] = { text: id }
       
       filteredColumns.forEach(value => {
         objectDummy[value.id] = value
@@ -273,7 +280,13 @@ const App = () => {
     const arrayDummy = []
 
     for (let i = 0; i < arrayLength; i++) {
-      objectDummy[array[i].id] = array[i]
+      objectDummy[array[i].id] = {
+        text: "",
+        type: array[i].type,
+        title: array[i].title,
+        value: "",
+        id: "",
+      }
     }
 
     arrayDummy.push(objectDummy)
@@ -338,6 +351,26 @@ const App = () => {
     setAppError("")
     setJobNameError({})
     setJobName(stringVal)
+  }
+
+  const handleAddSubitemRow = () => {
+    const arrayLength = subitemFields.length
+    const objectDummy = {}
+
+    for (let i = 0; i < arrayLength; i++) {
+      objectDummy[subitemFields[i].id] = {
+        text: "",
+        type: subitemFields[i].type,
+        title: subitemFields[i].title,
+        value: "",
+        id: "",
+      }
+    }
+
+    setSubitemItems([
+      ...subitemItems,
+      objectDummy,
+    ])
   }
 
   return (
@@ -443,11 +476,26 @@ const App = () => {
               padding={Box.paddings.MEDIUM}
               backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
             >
-              <Subitems
-                subitemDetails={subitemDetails}
-                subitemFields={subitemFields}
-                setSubitemDetails={setSubitemDetails}
-                monday={monday}
+              {subitemItems.map(subitem => (
+                <Flex>
+                  {subitemFields.map(field => (
+                    <fieldset>
+                      <label htmlFor={field.id}>{field.title}</label>
+                      <SubitemField
+                        field={field}
+                        setSubitemEdits={setSubitemEdits}
+                        setSubitemItems={setSubitemItems}
+                        subitemDetails={subitem}
+                        subitemEdits={subitemEdits}
+                      />
+                    </fieldset>
+                  ))}
+                </Flex>
+              ))}
+              <IconButton
+                ariaLabel="Add row"
+                icon={Add}
+                onClick={() => handleAddSubitemRow()}
               />
             </Box>
             <Button

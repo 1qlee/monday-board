@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Chips, Flex } from "monday-ui-react-core";
+import { Chips, DialogContentContainer, List, ListItem } from "monday-ui-react-core";
 
 const Status = ({
   changeJobEdits,
@@ -8,9 +8,15 @@ const Status = ({
 }) => {
   const settings = JSON.parse(field.settings_str)
   const { labels } = settings
-  const [activeLabelText, setActiveLabelText] = useState("")
-  const [allLabels, setAllLabels] = useState([]) 
-  
+  const [activeLabel, setActiveLabel] = useState({
+    text: "Default",
+    style: {
+      color: "#d2d2d2"
+    }
+  })
+  const [allLabels, setAllLabels] = useState([])
+  const [showList, setShowList] = useState(false)
+
   useEffect(() => {
     const labelsArray = []
 
@@ -26,36 +32,76 @@ const Status = ({
     }
 
     labelsArray.sort((a, b) => a.position - b.position)
-    
-    setActiveLabelText(jobDetails[field.id].text)
+
+    if (jobDetails[field.id].text && jobDetails[field.id].value) {
+      console.log(jobDetails[field.id])
+      const activeLabelIndex = JSON.parse(jobDetails[field.id].value).index
+      console.log(activeLabelIndex)
+
+      setActiveLabel({
+        text: jobDetails[field.id].text,
+        style: settings.labels_colors[activeLabelIndex],
+      })
+    }
+    else {
+      console.log(labelsArray)
+      setActiveLabel(labelsArray[0])
+    }
+
     setAllLabels(labelsArray)
   }, [field, jobDetails[field.id]])
 
-  const handleChipsClick = (status, index) => {
+  const handleChipsClick = (status, label) => {
+    console.log(label)
     if (status.target.children.length > 0) {
-      setActiveLabelText(status.target.children[0].innerHTML)
+      setActiveLabel({
+        text: status.target.children[0].innerHTML,
+        style: label.style
+      })
     }
     else {
-      setActiveLabelText(status.target.innerHTML)
+      setActiveLabel({
+        text: status.target.innerHTML,
+        style: label.style
+      })
     }
 
-    changeJobEdits({ index: index })
+    setShowList(!showList)
+    changeJobEdits({ index: label.index })
   }
 
   return (
-    <Flex
-      wrap
-    >
-      {allLabels.map(label => (
-        <Chips
-          className={label.text === activeLabelText ? "is-active custom-chip-component" : "custom-chip-component"}
-          color={label.text === activeLabelText ? label.style.color : "EXPLOSIVE"}
-          label={label.text}
-          readOnly
-          onClick={e => handleChipsClick(e, label.index)}
-        />
-      ))}
-    </Flex>
+    <>
+      <Chips
+        className="is-active custom-chip-component"
+        color={activeLabel.style.color}
+        label={activeLabel.text}
+        readOnly
+        onClick={e => setShowList(!showList)}
+      />
+      {showList && (
+        <DialogContentContainer
+          style={{
+            position: "absolute",
+            zIndex: "999",
+          }}
+        >
+          <List
+            dense={true}
+          >
+            {allLabels.map(label => (
+              <Chips
+                className={label.text === activeLabel.text ? "is-active custom-chip-component" : "custom-chip-component"}
+                color={label.text === activeLabel.text ? label.style.color : "EXPLOSIVE"}
+                label={label.text}
+                readOnly
+                onClick={e => handleChipsClick(e, label)}
+              />
+            ))}
+          </List>
+        </DialogContentContainer>
+      )}
+    </>
   )
 }
 
