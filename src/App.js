@@ -22,11 +22,13 @@ const App = () => {
     }
   )
   const [columnFields, setColumnFields] = useState([])
-  const [subitemBoard, setSubitemBoard] = useState({})
+  const [subitemFields, setSubitemFields] = useState([])
   const [jobId, setJobId] = useState("")
   const [boardId, setBoardId] = useState(3715125693)
+  const [subitemBoardId, setSubitemBoardId] = useState(0)
   const [jobEdits, setJobEdits] = useState({})
   const [jobName, setJobName] = useState("")
+  const [subitemDetails, setSubitemDetails] = useState({})
   const [jobDetails, setJobDetails] = useState({})
   const [jobIdValidation, setJobIdValidation] = useState({
     text: "",
@@ -69,15 +71,28 @@ const App = () => {
       // then convert this array to an object with id:text pairs
       monday.api(columnsQuery).then(res => {
         const columns = res.data.boards[0].columns
-        const subitems = columns.filter(col => col.id === "subitems")
         // filter all columns by the columns specified in settings
         const filteredColumns = columns.filter(col => colTypes.has(col.type))
+        const subitemsColumn = columns.filter(col => col.id === "subitems")
 
-        setSubitemBoard(JSON.parse(subitems[0].settings_str).boardIds[0])
         setColumnFields(filteredColumns)
         setJobDetails(parseColumnsDefault(filteredColumns)) // manually set default values for certain fields
-        setLoading(false)
-      });
+
+        return JSON.parse(subitemsColumn[0].settings_str).boardIds[0]
+      }).then(parsedBoardId => {
+        setSubitemBoardId(parsedBoardId)
+        const subitemsQuery = `query { boards (ids: ${parsedBoardId}) { columns { title type id settings_str }}}`
+
+        monday.api(subitemsQuery).then(res => {
+          const columns = res.data.boards[0].columns
+          const filteredColumns = columns.filter(col => colTypes.has(col.type))
+
+          console.log(filteredColumns)
+          setSubitemFields(filteredColumns)
+          setSubitemDetails(parseSubitemsDefault(filteredColumns))
+          setLoading(false)
+        })
+      })
     }).catch(() => {
       setAppError("Something went wrong. Please refresh the page. If this problem persists, try reinstalling the app.")
       setLoading(false)
@@ -104,12 +119,21 @@ const App = () => {
           })
           setJobName(name)
           setJobDetails(parseColumns(filteredColumns))
-          setFetching(false)
         }
         else {
           throw new Error("This job number doesn't exist!")
         }
-      }).catch(error => {
+      }).then(() => {
+        const subitemQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { subitems { name column_values { text type title value id}}}}}`
+
+        // query for all subitem values
+        monday.api(subitemQuery).then(res => {
+          const results = res.data.boards[0].items[0].subitems
+
+          setSubitemDetails(parseSubitems(results))
+          setFetching(false)
+        })
+      }).catch(() => {
         setJobIdValidation({
           text: "This job number doesn't exist!",
           status: "error",
@@ -221,6 +245,40 @@ const App = () => {
     }
 
     return objectDummy
+  }
+
+  const parseSubitems = array => {
+    const arrayDummy = []
+
+    array.forEach(subitem => {
+      const objectDummy = {}
+      const { column_values, name } = subitem
+      const filteredColumns = column_values.filter(col => colTypes.has(col.type))
+
+      objectDummy["name"] = name
+      
+      filteredColumns.forEach(value => {
+        objectDummy[value.id] = value
+      })
+
+      arrayDummy.push(objectDummy)
+    })
+
+    return arrayDummy
+  }
+
+  const parseSubitemsDefault = array => {
+    const arrayLength = array.length
+    const objectDummy = {}
+    const arrayDummy = []
+
+    for (let i = 0; i < arrayLength; i++) {
+      objectDummy[array[i].id] = array[i]
+    }
+
+    arrayDummy.push(objectDummy)
+
+    return arrayDummy
   }
 
   const parseColumnsDefault = array => {
@@ -348,48 +406,49 @@ const App = () => {
                 </Button>
               </Flex>
             </Box>
+            <Flex
+              align="start"
+              gap={8}
+              wrap={true}
+            >
+              <fieldset className="large-fieldset">
+                <label htmlFor="name">Project name</label>
+                <TextField
+                  required
+                  className="is-flex-full"
+                  onChange={handleJobName}
+                  value={jobName}
+                  validation={jobNameError}
+                  id="name"
+                />
+              </fieldset>
+              {columnFields.map(field => (
+                <fieldset className="medium-fieldset">
+                  <label htmlFor={field.id}>{field.title}</label>
+                  <ColumnField
+                    field={field}
+                    jobDetails={jobDetails}
+                    jobEdits={jobEdits}
+                    monday={monday}
+                    setConnectedBoard={setConnectedBoard}
+                    setJobDetails={setJobDetails}
+                    setJobEdits={setJobEdits}
+                  />
+                </fieldset>
+              ))}
+            </Flex>
             <Box
               border={Box.borders.DEFAULT}
               rounded={Box.roundeds.SMALL}
               padding={Box.paddings.MEDIUM}
               backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
             >
-              <Flex
-                align="start"
-                gap={8}
-                wrap={true}
-              >
-                <fieldset className="large-fieldset">
-                  <label htmlFor="name">Project name</label>
-                  <TextField
-                    required
-                    className="is-flex-full"
-                    onChange={handleJobName}
-                    value={jobName}
-                    validation={jobNameError}
-                    id="name"
-                  />
-                </fieldset>
-                {columnFields.map(field => (
-                  <fieldset className="medium-fieldset">
-                    <label htmlFor={field.id}>{field.title}</label>
-                    <ColumnField
-                      field={field}
-                      jobDetails={jobDetails}
-                      jobEdits={jobEdits}
-                      monday={monday}
-                      setConnectedBoard={setConnectedBoard}
-                      setJobDetails={setJobDetails}
-                      setJobEdits={setJobEdits}
-                    />
-                  </fieldset>
-                ))}
-                <Subitems
-                  boardId={subitemBoard}
-                  monday={monday}
-                  colTypes={colTypes}
-                />
-              </Flex>
+              <Subitems
+                subitemDetails={subitemDetails}
+                subitemFields={subitemFields}
+                setSubitemDetails={setSubitemDetails}
+                monday={monday}
+              />
             </Box>
             <Button
               onClick={() => saveJob()}

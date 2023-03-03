@@ -28,8 +28,6 @@ const Calendar = ({
     }
   }
 
-  console.log(jobDetails[field.id].text)
-
   return (
     <>
       <Button

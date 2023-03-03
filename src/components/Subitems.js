@@ -1,43 +1,33 @@
 import React, { useState, useEffect } from "react"
 import ColumnField from "./ColumnField"
+import { Flex } from "monday-ui-react-core"
 
 const Subitems = ({
-  boardId,
-  colTypes,
-  monday
+  subitemDetails,
+  subitemFields,
+  setSubitemDetails,
 }) => {
-  const [columnFields, setColumnFields] = useState([])
   const [subitemEdits, setSubitemEdits] = useState({})
-  const [subitemDetails, setSubitemDetails] = useState({})
-
-  useEffect(() => {
-    if (boardId) {
-      const columnsQuery = `query { boards (ids: ${boardId}) { columns { title type id settings_str }}}`
-      monday.api(columnsQuery).then(res => {
-        const columns = res.data.boards[0].columns
-        const filteredColumns = columns.filter(col => colTypes.has(col.type))
-
-        setColumnFields(filteredColumns)
-      })
-    }
-  }, [boardId])
 
   return (
-    <div>
-      {columnFields.map(field => (
-        <>
-          <label htmlFor={field.id}>{field.title}</label>
-          <ColumnField
-            field={field}
-            jobDetails={subitemDetails}
-            jobEdits={subitemEdits}
-            monday={monday}
-            setJobDetails={setSubitemDetails}
-            setJobEdits={setSubitemEdits}
-          />
-        </>
+    <>
+      {subitemDetails.map(subitem => (
+        <Flex>
+          {subitemFields.map(field => (
+            <fieldset>
+              <label htmlFor={field.id}>{field.title}</label>
+              <ColumnField
+                field={field}
+                jobDetails={subitem}
+                jobEdits={subitemEdits}
+                setJobDetails={setSubitemDetails}
+                setJobEdits={setSubitemEdits}
+              />
+            </fieldset>
+          ))}
+        </Flex>
       ))}
-    </div>
+    </>
   )
 }
 
