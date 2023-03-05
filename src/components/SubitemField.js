@@ -5,27 +5,38 @@ import Calendar from "./Calendar";
 
 const SubitemField = ({
   field,
-  subitemDetails,
+  index,
+  subitem,
+  subitems,
   subitemEdits,
   setSubitemEdits,
-  setSubitemItems,
+  setSubitems,
 }) => {
 
   const changeSubitemEdits = value => {
-    setSubitemEdits({
+    const edits = subitems[index]
+    edits[field.id] = value
+    setSubitemEdits([
       ...subitemEdits,
-      [field.id]: value,
-    })
+      {
+        [subitem.id]: {
+          ...subitem,
+          [field.id]: value,
+        }
+      }
+    ])
   }
 
-  const changeSubitemDetails = (value, property) => {
-    setSubitemItems({
-      ...subitemDetails,
-      [field.id]: {
-        ...subitemDetails[field.id],
-        [property]: value,
-      },
-    })
+  const changeSubitems = (value, property) => {
+    setSubitems([
+      ...subitems,
+      {
+        [subitem.id]: {
+          ...subitem,
+          [field.id]: value
+        }
+      }
+    ])
   }
 
   return (
@@ -35,7 +46,7 @@ const SubitemField = ({
           id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
-            changeSubitemDetails(value, "text")
+            changeSubitems(value, "text")
           }}
           value={subitemDetails[field.id].text}
         />

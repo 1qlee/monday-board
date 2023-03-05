@@ -29,7 +29,7 @@ const App = () => {
   const [jobName, setJobName] = useState("")
   const [subitemBoardId, setSubitemBoardId] = useState(0)
   const [subitemEdits, setSubitemEdits] = useState({})
-  const [subitemItems, setSubitemItems] = useState([])
+  const [subitems, setSubitems] = useState([])
   const [subitemFields, setSubitemFields] = useState([])
   const [jobIdValidation, setJobIdValidation] = useState({
     text: "",
@@ -92,7 +92,7 @@ const App = () => {
           const filteredColumns = columns.filter(col => subitemColTypes.has(col.type))
 
           setSubitemFields(filteredColumns)
-          setSubitemItems(parseSubitemsDefault(filteredColumns))
+          setSubitems(parseSubitemsDefault(filteredColumns))
           setLoading(false)
         })
       })
@@ -134,7 +134,7 @@ const App = () => {
           const results = res.data.boards[0].items[0].subitems
 
           if (results.length > 0) {
-            setSubitemItems(parseSubitems(results))
+            setSubitems(parseSubitems(results))
           }
 
           setFetching(false)
@@ -253,25 +253,27 @@ const App = () => {
     return objectDummy
   }
 
+  // format array of subitems
   const parseSubitems = array => {
-    const arrayDummy = []
+    const formattedSubitems = []
 
     array.forEach(subitem => {
-      const objectDummy = {}
+      const formattedSubitem = {}
       const { column_values, name, id } = subitem
       const filteredColumns = column_values.filter(col => subitemColTypes.has(col.type))
 
-      objectDummy["name"] = { text: name }
-      objectDummy["id"] = { text: id }
+      // handle name and id columns separately
+      formattedSubitem["name"] = { text: name}
+      formattedSubitem["id"] = { text: id }
       
       filteredColumns.forEach(value => {
-        objectDummy[value.id] = value
+        formattedSubitem[value.id] = value
       })
 
-      arrayDummy.push(objectDummy)
+      formattedSubitems.push(formattedSubitem)
     })
 
-    return arrayDummy
+    return formattedSubitems
   }
 
   const parseSubitemsDefault = array => {
@@ -367,8 +369,8 @@ const App = () => {
       }
     }
 
-    setSubitemItems([
-      ...subitemItems,
+    setSubitems([
+      ...subitems,
       objectDummy,
     ])
   }
@@ -476,16 +478,18 @@ const App = () => {
               padding={Box.paddings.MEDIUM}
               backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
             >
-              {subitemItems.map(subitem => (
+              {subitems.map((subitem, index) => (
                 <Flex>
                   {subitemFields.map(field => (
                     <fieldset>
                       <label htmlFor={field.id}>{field.title}</label>
                       <SubitemField
                         field={field}
+                        index={index}
                         setSubitemEdits={setSubitemEdits}
-                        setSubitemItems={setSubitemItems}
-                        subitemDetails={subitem}
+                        setSubitems={setSubitems}
+                        subitems={subitems}
+                        subitem={subitem}
                         subitemEdits={subitemEdits}
                       />
                     </fieldset>
