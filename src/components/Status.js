@@ -44,7 +44,6 @@ const Status = ({
       })
     }
     else {
-      console.log(labelsArray)
       setActiveLabel(labelsArray[0])
     }
 

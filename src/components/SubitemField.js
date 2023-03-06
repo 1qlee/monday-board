@@ -14,29 +14,51 @@ const SubitemField = ({
 }) => {
 
   const changeSubitemEdits = value => {
-    const edits = subitems[index]
-    edits[field.id] = value
-    setSubitemEdits([
-      ...subitemEdits,
-      {
-        [subitem.id]: {
-          ...subitem,
+    const subitemEditsCopy = subitemEdits
+    const { id } = subitem
+    if (subitemEdits.length > 0) {
+      const findIndex = subitemEditsCopy.findIndex(item => item.id === id)
+
+      if (findIndex) {
+        subitemEditsCopy[findIndex].edits = {
+          ...subitemEditsCopy[findIndex].edits,
           [field.id]: value,
         }
+
+        setSubitemEdits(subitemEditsCopy)
       }
-    ])
+      else {
+        subitemEditsCopy.push({
+          [id]: {
+            [field.id]: value
+          }
+        })
+      }
+    }
+    else {
+      setSubitemEdits([
+        {
+          [id]: {
+            [field.id]: value
+          }
+        }
+      ])
+    }
   }
 
   const changeSubitems = (value, property) => {
-    setSubitems([
-      ...subitems,
-      {
-        [subitem.id]: {
-          ...subitem,
-          [field.id]: value
-        }
+    const editedSubitem = {
+      ...subitem,
+      [field.id]: {
+        ...subitem[field.id],
+        [property]: value,
       }
-    ])
+    }
+    console.log(editedSubitem)
+    const editedSubitems = subitems
+    editedSubitems[index] = editedSubitem
+
+    setSubitems(editedSubitems)
   }
 
   return (
@@ -48,7 +70,7 @@ const SubitemField = ({
             changeSubitemEdits(value)
             changeSubitems(value, "text")
           }}
-          value={subitemDetails[field.id].text}
+          value={subitem[field.id].text}
         />
       )}
       {field.type === "text" && (
@@ -56,9 +78,9 @@ const SubitemField = ({
           id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
-            changeSubitemDetails(value, "text")
+            changeSubitems(value, "text")
           }}
-          value={subitemDetails[field.id].text}
+          value={subitem[field.id].text}
         />
       )}
       {field.type === "long-text" && (
@@ -68,9 +90,9 @@ const SubitemField = ({
             rows={3}
             onChange={e => {
               changeSubitemEdits(e.target.value)
-              changeSubitemDetails(e.target.value, "text")
+              changeSubitems(e.target.value, "text")
             }}
-            value={subitemDetails[field.id].text}
+            value={subitem[field.id].text}
           />
         </>
       )}
@@ -79,22 +101,24 @@ const SubitemField = ({
           id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
-            changeSubitemDetails(value, "text")
+            changeSubitems(value, "text")
           }}
-          value={subitemDetails[field.id].text}
+          value={subitem[field.id].text}
         />
       )}
       {field.type === "color" && (
         <Status
           changeSubitemEdits={changeSubitemEdits}
           field={field}
-          subitemDetails={subitemDetails}
+          jobDetails={subitem}
         />
       )}
       {field.type === "date" && (
         <Calendar
           field={field}
-          subitemDetails={subitemDetails}
+          jobDetails={subitem}
+          changeJobDetails={changeSubitems}
+          changeJobEdits={changeSubitemEdits}
         />
       )}
     </>

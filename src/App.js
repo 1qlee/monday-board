@@ -41,7 +41,7 @@ const App = () => {
   })
   const [appError, setAppError] = useState("")
   const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person"])
-  const subitemColTypes = new Set(["name", "text", "long-text", "numeric", "color", "date", "dropdown"])
+  const subitemColTypes = new Set(["name", "text", "long-text", "numeric", "color", "date"])
   const [connectedBoard, setConnectedBoard] = useState({
     id: null,
     name: "",
@@ -278,11 +278,11 @@ const App = () => {
 
   const parseSubitemsDefault = array => {
     const arrayLength = array.length
-    const objectDummy = {}
-    const arrayDummy = []
+    const subitem = {}
+    const allSubitems = []
 
     for (let i = 0; i < arrayLength; i++) {
-      objectDummy[array[i].id] = {
+      subitem[array[i].id] = {
         text: "",
         type: array[i].type,
         title: array[i].title,
@@ -291,9 +291,9 @@ const App = () => {
       }
     }
 
-    arrayDummy.push(objectDummy)
+    allSubitems.push(subitem)
 
-    return arrayDummy
+    return allSubitems
   }
 
   const parseColumnsDefault = array => {
