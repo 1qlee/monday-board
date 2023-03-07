@@ -34,9 +34,7 @@ const Status = ({
     labelsArray.sort((a, b) => a.position - b.position)
 
     if (jobDetails[field.id].text && jobDetails[field.id].value) {
-      console.log(jobDetails[field.id])
       const activeLabelIndex = JSON.parse(jobDetails[field.id].value).index
-      console.log(activeLabelIndex)
 
       setActiveLabel({
         text: jobDetails[field.id].text,
@@ -51,7 +49,6 @@ const Status = ({
   }, [field, jobDetails[field.id]])
 
   const handleChipsClick = (status, label) => {
-    console.log(label)
     if (status.target.children.length > 0) {
       setActiveLabel({
         text: status.target.children[0].innerHTML,

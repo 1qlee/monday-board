@@ -9,10 +9,8 @@ const Calendar = ({
   changeJobEdits,
 }) => {
   const [showPicker, setShowPicker] = useState(false)
-  console.log(jobDetails)
 
   const handlePickDate = date => {
-    console.log(date)
     // returns formatted date string
     const newDate = format(new Date(date._d), "yyyy-MM-dd")
 

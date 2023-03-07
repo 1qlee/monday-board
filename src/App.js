@@ -255,7 +255,7 @@ const App = () => {
 
   // format array of subitems
   const parseSubitems = array => {
-    const formattedSubitems = []
+    const allFormattedSubitems = []
 
     array.forEach(subitem => {
       const formattedSubitem = {}
@@ -270,19 +270,21 @@ const App = () => {
         formattedSubitem[value.id] = value
       })
 
-      formattedSubitems.push(formattedSubitem)
+      allFormattedSubitems.push(formattedSubitem)
     })
 
-    return formattedSubitems
+    console.log(allFormattedSubitems)
+
+    return allFormattedSubitems
   }
 
   const parseSubitemsDefault = array => {
     const arrayLength = array.length
-    const subitem = {}
-    const allSubitems = []
+    const formattedSubitem = {}
+    const allFormattedSubitems = []
 
     for (let i = 0; i < arrayLength; i++) {
-      subitem[array[i].id] = {
+      formattedSubitem[array[i].id] = {
         text: "",
         type: array[i].type,
         title: array[i].title,
@@ -291,9 +293,10 @@ const App = () => {
       }
     }
 
-    allSubitems.push(subitem)
+    allFormattedSubitems.push(formattedSubitem)
+    console.log(allFormattedSubitems)
 
-    return allSubitems
+    return allFormattedSubitems
   }
 
   const parseColumnsDefault = array => {

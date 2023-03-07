@@ -14,35 +14,35 @@ const SubitemField = ({
 }) => {
 
   const changeSubitemEdits = value => {
-    const subitemEditsCopy = subitemEdits
     const { id } = subitem
-    if (subitemEdits.length > 0) {
-      const findIndex = subitemEditsCopy.findIndex(item => item.id === id)
-
-      if (findIndex) {
-        subitemEditsCopy[findIndex].edits = {
-          ...subitemEditsCopy[findIndex].edits,
-          [field.id]: value,
-        }
-
-        setSubitemEdits(subitemEditsCopy)
-      }
-      else {
-        subitemEditsCopy.push({
-          [id]: {
-            [field.id]: value
-          }
-        })
+    const newSubitem = {
+      id: id,
+      column_values: {
+        [field.id]: value
       }
     }
+
+    // first check if subitemEdits has subitems already
+    if (subitemEdits.length > 0) {
+      // make a copy of the subitemEdits array
+      const subitemEditsCopy = subitemEdits
+      // check if this subitem already has edits
+      const subitemIndex = subitemEditsCopy.findIndex(edit => edit.id === id)
+
+      // if the subitem already exist, change the targeted field's value
+      if (subitemIndex) {
+        subitemEditsCopy[subitemIndex].column_values[field.id] = value
+      }
+      else {
+        subitemEditsCopy.push(newSubitem)
+      }
+
+      setSubitemEdits(subitemEditsCopy)
+    }
     else {
-      setSubitemEdits([
-        {
-          [id]: {
-            [field.id]: value
-          }
-        }
-      ])
+      const subitemEditsNew = []
+      subitemEditsNew[0] = newSubitem
+      setSubitemEdits(subitemEditsNew)
     }
   }
 
@@ -54,7 +54,7 @@ const SubitemField = ({
         [property]: value,
       }
     }
-    console.log(editedSubitem)
+
     const editedSubitems = subitems
     editedSubitems[index] = editedSubitem
 
