@@ -28,7 +28,7 @@ const App = () => {
   const [jobId, setJobId] = useState("")
   const [jobName, setJobName] = useState("")
   const [subitemBoardId, setSubitemBoardId] = useState(0)
-  const [subitemEdits, setSubitemEdits] = useState({})
+  const [subitemEdits, setSubitemEdits] = useState([])
   const [subitems, setSubitems] = useState([])
   const [subitemFields, setSubitemFields] = useState([])
   const [jobIdValidation, setJobIdValidation] = useState({
@@ -104,6 +104,9 @@ const App = () => {
 
   // retrieve a specific job (an item in Monday)
   const getJob = () => {
+    setSubitemEdits([])
+    setJobEdits({})
+
     if (jobId) {
       setFetching(true)
       const jobQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { name column_values { text type title value id }}}}`;
@@ -133,8 +136,11 @@ const App = () => {
         monday.api(subitemQuery).then(res => {
           const results = res.data.boards[0].items[0].subitems
 
-          if (results.length > 0) {
+          if (results) {
             setSubitems(parseSubitems(results))
+          }
+          else {
+            setSubitems(parseSubitemsDefault(subitemFields))
           }
 
           setFetching(false)
@@ -193,16 +199,64 @@ const App = () => {
         }
         // turn newJob into a JSON string so its readable in Monday
         const mutationString = JSON.stringify(JSON.stringify(newJob))
-        console.log(mutationString)
         const updateJobQuery = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
 
+        // update the job
         monday.api(updateJobQuery).then(res => {
-          setToast({
-            msg: "Successfully updated job.",
-            type: "positive",
-            open: true,
-          })
-          setSaving(false)
+          return res.data.change_multiple_column_values.id
+        }).then(parentItemId => {
+          const numOfSubitems = subitemEdits.length
+
+          // check if we have any subitem edits 
+          if (numOfSubitems > 0) {
+            for (let i = 0; i < numOfSubitems; i++) {
+              const currentSubitem = subitemEdits[i]
+              console.log(currentSubitem)
+              const stringifiedSubitemName = currentSubitem.column_values.name
+              console.log(stringifiedSubitemName)
+              const mutationString = JSON.stringify(JSON.stringify(currentSubitem.column_values))
+              console.log(mutationString)
+
+              // check if the subitem exists by checking id
+              if (currentSubitem.id) {
+                const updateSubitemQuery = `mutation { change_multiple_column_values(board_id: ${subitemBoardId}, item_id: ${currentSubitem.id}, column_values: ${mutationString}) { id }}`
+
+                monday.api(updateSubitemQuery).then(() => {
+                  if (i === numOfSubitems - 1) {
+                    setToast({
+                      msg: "Successfully updated job.",
+                      type: "positive",
+                      open: true,
+                    })
+                    return setSaving(false)
+                  }
+                })
+              }
+              // otherwise we have to create a new subitem
+              else {
+                const createSubitemQuery = `mutation { create_subitem (parent_item_id: ${parentItemId}, item_name: ${stringifiedSubitemName}, column_values: ${mutationString}) { id }}`
+
+                monday.api(createSubitemQuery).then(() => {
+                  if (i === numOfSubitems - 1) {
+                    setToast({
+                      msg: "Successfully updated job.",
+                      type: "positive",
+                      open: true,
+                    })
+                    return setSaving(false)
+                  }
+                })
+              }
+            }
+          }
+          else {
+            setToast({
+              msg: "Successfully updated job.",
+              type: "positive",
+              open: true,
+            })
+            setSaving(false)
+          }
         }).catch(error => {
           console.log(error)
           // almost always the error will be because of an invalid jobId
@@ -217,16 +271,40 @@ const App = () => {
       else {
         // for some reason we need to stringify twice for Monday api to understand
         const mutationString = JSON.stringify(JSON.stringify(jobEdits))
-        console.log(mutationString)
         const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
 
         monday.api(createJobQuery).then(res => {
-          setToast({
-            msg: "Successfully created a new job.",
-            type: "positive",
-            open: true,
-          })
-          setSaving(false)
+          return res.data.create_item.id
+        }).then(parentItemId => {
+          const numOfSubitems = subitemEdits.length
+
+          if (numOfSubitems > 0) {
+            for (let i = 0; i < numOfSubitems; i++) {
+              const currentSubitem = subitemEdits[i].column_values
+              const mutationString = JSON.stringify(JSON.stringify(currentSubitem))
+              const stringifiedSubitemName = JSON.stringify(currentSubitem.name)
+              const createSubitemQuery = `mutation { create_subitem (parent_item_id: ${parentItemId}, item_name: ${stringifiedSubitemName}, column_values: ${mutationString}) { id }}`
+
+              monday.api(createSubitemQuery).then(() => {
+                if (i === numOfSubitems - 1) {
+                  setToast({
+                    msg: "Successfully created a new job.",
+                    type: "positive",
+                    open: true,
+                  })
+                  return setSaving(false)
+                }
+              })
+            }
+          }
+          else {
+            setToast({
+              msg: "Successfully created a new job.",
+              type: "positive",
+              open: true,
+            })
+            return setSaving(false)
+          }
         }).catch(error => {
           console.log(error)
           setAppError("Could not process. Please refresh and try again.")

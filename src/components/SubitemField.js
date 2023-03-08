@@ -14,51 +14,79 @@ const SubitemField = ({
 }) => {
 
   const changeSubitemEdits = value => {
-    const { id } = subitem
-    const newSubitem = {
-      id: id,
-      column_values: {
-        [field.id]: value
+    const editsExist = subitemEdits.length > 0
+    // subitem will have an id only when a job has subitems already
+    if (subitem.id) {
+      const { id } = subitem
+      const subitemId = id.text
+      const newSubitem = {
+        id: subitemId,
+        column_values: {
+          [field.id]: value
+        }
       }
-    }
 
-    // first check if subitemEdits has subitems already
-    if (subitemEdits.length > 0) {
-      // make a copy of the subitemEdits array
-      const subitemEditsCopy = subitemEdits
-      // check if this subitem already has edits
-      const subitemIndex = subitemEditsCopy.findIndex(edit => edit.id === id)
+      // first check if subitemEdits has subitems already
+      if (editsExist) {
+        // make a copy of the subitemEdits array
+        const subitemEditsCopy = subitemEdits
+        // check if this subitem already has edits
+        const subitemIndex = subitemEditsCopy.findIndex(item => item.id == subitemId)
 
-      // if the subitem already exist, change the targeted field's value
-      if (subitemIndex) {
-        subitemEditsCopy[subitemIndex].column_values[field.id] = value
+        // if the subitem already exist, change the targeted field's value
+        if (subitemIndex >= 0) {
+          subitemEditsCopy[subitemIndex].column_values[field.id] = value
+        }
+        else {
+          subitemEditsCopy[subitemEditsCopy.length] = newSubitem
+        }
+
+        setSubitemEdits(subitemEditsCopy)
       }
       else {
-        subitemEditsCopy.push(newSubitem)
+        const subitemEditsNew = []
+        subitemEditsNew[0] = newSubitem
+        setSubitemEdits(subitemEditsNew)
+      }
+    }
+    // otherwise we don't need a subitem id to create new subitems from scratch
+    else {
+      const subitemEditsCopy = subitemEdits
+
+      if (editsExist) {
+        if (subitemEditsCopy[index]) {
+          subitemEditsCopy[index].column_values[field.id] = value
+        }
+        else {
+          subitemEditsCopy[index] = {
+            column_values: {
+              [field.id]: value
+            }
+          }
+        }
+      }
+      else {
+        subitemEditsCopy[index] = {
+          column_values: {
+            [field.id]: value
+          }
+        }
       }
 
       setSubitemEdits(subitemEditsCopy)
     }
-    else {
-      const subitemEditsNew = []
-      subitemEditsNew[0] = newSubitem
-      setSubitemEdits(subitemEditsNew)
-    }
   }
 
   const changeSubitems = (value, property) => {
-    const editedSubitem = {
-      ...subitem,
-      [field.id]: {
-        ...subitem[field.id],
-        [property]: value,
-      }
+    const subitemsCopy = subitems
+    const subitemToEdit = subitemsCopy[index]
+    subitemToEdit[field.id] = {
+      ...subitemToEdit[field.id],
+      [property]: value
     }
+    subitemsCopy[index] = subitemToEdit
 
-    const editedSubitems = subitems
-    editedSubitems[index] = editedSubitem
-
-    setSubitems(editedSubitems)
+    setSubitems(subitemsCopy)
   }
 
   return (
@@ -108,7 +136,7 @@ const SubitemField = ({
       )}
       {field.type === "color" && (
         <Status
-          changeSubitemEdits={changeSubitemEdits}
+          changeJobEdits={changeSubitemEdits}
           field={field}
           jobDetails={subitem}
         />
