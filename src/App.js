@@ -492,10 +492,10 @@ const App = () => {
             justify="Start"
           >
             <Box
-              border={Box.borders.DEFAULT}
-              rounded={Box.roundeds.SMALL}
-              padding={Box.paddings.MEDIUM}
               backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
+              border={Box.borders.DEFAULT}
+              borderColors={Box.borderColors.UI_BORDER_COLOR}
+              padding={Box.paddings.XS}
               className="searchbox"
             >
               <label htmlFor="jobId">Job number</label>
@@ -522,67 +522,66 @@ const App = () => {
                 </Button>
               </Flex>
             </Box>
-            <Flex
-              align="start"
-              gap={8}
-              wrap={true}
-            >
-              <fieldset className="large-fieldset">
-                <label htmlFor="name">Project name</label>
-                <TextField
-                  required
-                  className="is-flex-full"
-                  onChange={handleJobName}
-                  value={jobName}
-                  validation={jobNameError}
-                  id="name"
-                />
-              </fieldset>
-              {columnFields.map(field => (
-                <fieldset className="medium-fieldset">
-                  <label htmlFor={field.id}>{field.title}</label>
-                  <ColumnField
-                    field={field}
-                    jobDetails={jobDetails}
-                    jobEdits={jobEdits}
-                    monday={monday}
-                    setConnectedBoard={setConnectedBoard}
-                    setJobDetails={setJobDetails}
-                    setJobEdits={setJobEdits}
-                  />
-                </fieldset>
-              ))}
-            </Flex>
-            <Box
-              border={Box.borders.DEFAULT}
-              rounded={Box.roundeds.SMALL}
-              padding={Box.paddings.MEDIUM}
-              backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
-            >
-              {subitems.map((subitem, index) => (
-                <Flex>
-                  {subitemFields.map(field => (
-                    <fieldset>
-                      <label htmlFor={field.id}>{field.title}</label>
-                      <SubitemField
-                        field={field}
-                        index={index}
-                        setSubitemEdits={setSubitemEdits}
-                        setSubitems={setSubitems}
-                        subitems={subitems}
-                        subitem={subitem}
-                        subitemEdits={subitemEdits}
-                      />
-                    </fieldset>
-                  ))}
-                </Flex>
-              ))}
-              <IconButton
-                ariaLabel="Add row"
-                icon={Add}
-                onClick={() => handleAddSubitemRow()}
+            <div>
+              <label htmlFor="name">Project name</label>
+              <TextField
+                required
+                className="is-flex-full"
+                onChange={handleJobName}
+                value={jobName}
+                validation={jobNameError}
+                id="name"
               />
-            </Box>
+            </div>
+            {columnFields.map(field => (
+              <div>
+                <label htmlFor={field.id}>{field.title}</label>
+                <ColumnField
+                  field={field}
+                  jobDetails={jobDetails}
+                  jobEdits={jobEdits}
+                  monday={monday}
+                  setConnectedBoard={setConnectedBoard}
+                  setJobDetails={setJobDetails}
+                  setJobEdits={setJobEdits}
+                />
+              </div>
+            ))}
+            <table>
+              <thead>
+                {subitemFields.map(field => (
+                  <th>{field.title}</th>
+                ))}
+              </thead>
+              <tbody>
+                {subitems.map((subitem, index) => (
+                  <tr>
+                    {subitemFields.map(field => (
+                      <td>
+                        <SubitemField
+                          field={field}
+                          index={index}
+                          setSubitemEdits={setSubitemEdits}
+                          setSubitems={setSubitems}
+                          subitems={subitems}
+                          subitem={subitem}
+                          subitemEdits={subitemEdits}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                <tr>
+                  <td>
+                    <IconButton
+                      ariaLabel="Add row"
+                      icon={Add}
+                      onClick={() => handleAddSubitemRow()}
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
             <Button
               onClick={() => saveJob()}
               loading={saving}

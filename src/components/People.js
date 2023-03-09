@@ -65,8 +65,9 @@ const People = ({
   return (
     <>
       <Button
-        kind="secondary"
-        size="small"
+        color={Button.colors.PRIMARY}
+        kind={Button.kinds.SECONDARY}
+        size={Button.sizes.SMALL}
         onClick={() => setShowList(!showList)}
       >
         <Avatar className="list-item-avatar" src={activePerson.src} size="small" type="img" ></Avatar>

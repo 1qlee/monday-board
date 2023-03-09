@@ -93,6 +93,8 @@ const SubitemField = ({
     <>
       {field.type === "name" && (
         <TextField
+          autoComplete="new-password"
+          className="custom-input-component--table"
           id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
@@ -103,6 +105,8 @@ const SubitemField = ({
       )}
       {field.type === "text" && (
         <TextField
+          autoComplete="new-password"
+          className="custom-input-component--table"
           id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
@@ -126,6 +130,8 @@ const SubitemField = ({
       )}
       {field.type === "numeric" && (
         <TextField
+          autoComplete="new-password"
+          className="custom-input-component--table"
           id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
@@ -143,6 +149,7 @@ const SubitemField = ({
       )}
       {field.type === "date" && (
         <Calendar
+          className="button--table"
           field={field}
           jobDetails={subitem}
           changeJobDetails={changeSubitems}

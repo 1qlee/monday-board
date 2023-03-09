@@ -13,7 +13,35 @@ fieldset {
   border: 0;
 }
 
+table {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  border-collapse: collapse;
+}
+
+th {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  background-color: var(--grey-background-color);
+  border: 1px solid var(--ui-border-color);
+  font-family: var(--font-family);
+  font: var(--font-general-label);
+  margin: 0;
+  padding: 4px 8px;
+  text-align: left;
+}
+
+td {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  background-color: var(--grey-background-color);
+  border: 1px solid var(--ui-border-color);
+  font-family: var(--font-family);
+  font: var(--font-general-label);
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
 textarea {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   display: block;
   background-color: var(--primary-background-color) !important;
   border: 1px solid #c3c6d4;
@@ -22,15 +50,12 @@ textarea {
   box-sizing: border-box;
   color: #323338;
   color: var(--primary-text-color);
-  font-family: Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   font-family: var(--font-family);
-  font: 400 14px/24px Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   font: var(--font-general-label);
   height: 100%;
   outline: 0;
   padding: 8px 16px;
   min-height: 88px;
-  transition: border-color .1s ease-in;
   transition: border-color var(--motion-productive-medium) ease-in;
   resize: none;
   width: 100%;
@@ -47,15 +72,19 @@ textarea:focus {
 }
 
 label {
-  color: var(--primary-text-color);
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  background-color: var(--grey-background-color);
   display: block;
-  margin-bottom: 4px;
-  font-size: 14px;
-  font-weight: 700;
+  font: var(--font-general-label);
+  border: 1px solid var(--ui-border-color);
+  padding: 4px 8px;
+  font-weight: 400;
 }
 
 input {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   background-color: var(--primary-background-color) !important;
+  font: var(--font-general-label);
 }
 
 .has-margin-bottom {
@@ -142,12 +171,19 @@ input {
   display: block;
 }
 
+.button--table {
+  height: 34px !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+}
+
 .custom-input-component {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-font-smoothing: var(--font-smoothing-webkit);
   -moz-osx-font-smoothing: grayscale;
   -moz-osx-font-smoothing: var(--font-smoothing-moz);
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid var(--ui-border-color);
   box-sizing: border-box;
   color: var(--primary-text-color);
@@ -159,10 +195,17 @@ input {
   padding: 8px 16px;
   position: relative;
   text-overflow: ellipsis;
-  transition: border-color .1s ease-in;
   transition: border-color var(--motion-productive-medium) ease-in;
   white-space: nowrap;
   width: 100%;
+}
+
+.custom-input-component--table {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  box-sizing: border-box;
+  border-radius: 0;
+  border-color: transparent !important;
+  padding: 8px !important;
 }
 
 .custom-input-icon--wrapper {
@@ -202,13 +245,11 @@ input {
 
 .custom-chip-component {
   display: flex !important;
-  height: auto !important;
+  height: 34px !important;
   justify-content: center;
   box-sizing: border-box;
-}
-
-.custom-chip-component:not(:last-child) {
-  margin-bottom: 4px;
+  border-radius: 0 !important;
+  margin: 0 !important;
 }
 
 .date-picker-component {
@@ -236,6 +277,12 @@ input {
   height: 100%;
 }
 
+.monday-style-button {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  font: var(--font-general-label);
+}
+
 .list-item--xxs {
   padding: 4px 8px !important;
 }
+

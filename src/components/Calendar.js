@@ -3,6 +3,7 @@ import { DatePicker, Button } from "monday-ui-react-core"
 import { format, parseISO } from 'date-fns'
 
 const Calendar = ({
+  className,
   field,
   jobDetails,
   changeJobDetails,
@@ -32,8 +33,10 @@ const Calendar = ({
   return (
     <>
       <Button
-        kind="secondary"
-        size="small"
+        className={className}
+        color={Button.colors.PRIMARY}
+        kind={Button.kinds.SECONDARY}
+        size={Button.sizes.SMALL}
         onClick={() => setShowPicker(!showPicker)}
       >
         {handleButtonText()}
