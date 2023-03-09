@@ -456,6 +456,34 @@ const App = () => {
     ])
   }
 
+  const filterColumnFields = type => {
+    if (columnFields) {
+      return columnFields.filter(col => col.type === type)
+    }
+  }
+
+  const returnColumnFields = field => {
+    return (
+      <Box
+        backgroundColor={Box.backgroundColors.PRIMARY_BACKGROUND_COLOR}
+        border="none"
+        margin={Box.margins.NONE}
+        padding={Box.paddings.NONE}
+      >
+        <label htmlFor={field.id}>{field.title}</label>
+        <ColumnField
+          field={field}
+          jobDetails={jobDetails}
+          jobEdits={jobEdits}
+          monday={monday}
+          setConnectedBoard={setConnectedBoard}
+          setJobDetails={setJobDetails}
+          setJobEdits={setJobEdits}
+        />
+      </Box>
+    )
+  }
+
   return (
     <>
       {loading ? (
@@ -491,13 +519,7 @@ const App = () => {
             align="Start"
             justify="Start"
           >
-            <Box
-              backgroundColor={Box.backgroundColors.GREY_BACKGROUND_COLOR}
-              border={Box.borders.DEFAULT}
-              borderColors={Box.borderColors.UI_BORDER_COLOR}
-              padding={Box.paddings.XS}
-              className="searchbox"
-            >
+            <div>
               <label htmlFor="jobId">Job number</label>
               <Flex
                 gap={8}
@@ -509,7 +531,7 @@ const App = () => {
                   onKeyDown={e => e.key === "Enter" && getJob()}
                   placeholder="Leave blank to create a new job"
                   iconName={jobIdValidation.status === "success" && Check}
-                  className={jobIdValidation.status === "success" && "has-icon-success"}
+                  className={jobIdValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
                   validation={jobIdValidation}
                 />
                 <Button
@@ -521,7 +543,7 @@ const App = () => {
                   Search
                 </Button>
               </Flex>
-            </Box>
+            </div>
             <div>
               <label htmlFor="name">Project name</label>
               <TextField
@@ -533,20 +555,20 @@ const App = () => {
                 id="name"
               />
             </div>
-            {columnFields.map(field => (
-              <div>
-                <label htmlFor={field.id}>{field.title}</label>
-                <ColumnField
-                  field={field}
-                  jobDetails={jobDetails}
-                  jobEdits={jobEdits}
-                  monday={monday}
-                  setConnectedBoard={setConnectedBoard}
-                  setJobDetails={setJobDetails}
-                  setJobEdits={setJobEdits}
-                />
-              </div>
-            ))}
+            <Flex
+              gap={Flex.gaps.NONE}
+            >
+              {filterColumnFields("text").map(field => returnColumnFields(field))}
+              {filterColumnFields("board-relation").map(field => returnColumnFields(field))}
+              {filterColumnFields("date").map(field => returnColumnFields(field))}
+              {filterColumnFields("multiple-person").map(field => returnColumnFields(field))}
+              {filterColumnFields("color").map(field => returnColumnFields(field))}
+            </Flex>
+            <Flex
+              gap={Flex.gaps.NONE}
+            >
+              {filterColumnFields("long-text").map(field => returnColumnFields(field))}
+            </Flex>
             <table>
               <thead>
                 {subitemFields.map(field => (
@@ -582,6 +604,7 @@ const App = () => {
                 </tr>
               </tbody>
             </table>
+            <Flex>{filterColumnFields("numeric").map(field => returnColumnFields(field))}</Flex>
             <Button
               onClick={() => saveJob()}
               loading={saving}
