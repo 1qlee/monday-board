@@ -31,7 +31,7 @@ const SubitemField = ({
         // make a copy of the subitemEdits array
         const subitemEditsCopy = subitemEdits
         // check if this subitem already has edits
-        const subitemIndex = subitemEditsCopy.findIndex(item => item.id == subitemId)
+        const subitemIndex = subitemEditsCopy.findIndex(item => item.id === subitemId)
 
         // if the subitem already exist, change the targeted field's value
         if (subitemIndex >= 0) {
@@ -93,9 +93,8 @@ const SubitemField = ({
     <>
       {field.type === "name" && (
         <TextField
-          autoComplete="new-password"
+          autoComplete="off"
           className="custom-input-component--table"
-          id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
             changeSubitems(value, "text")
@@ -107,7 +106,6 @@ const SubitemField = ({
         <TextField
           autoComplete="new-password"
           className="custom-input-component--table"
-          id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
             changeSubitems(value, "text")
@@ -118,7 +116,6 @@ const SubitemField = ({
       {field.type === "long-text" && (
         <>
           <textarea
-            id={field.id}
             rows={3}
             onChange={e => {
               changeSubitemEdits(e.target.value)
@@ -132,7 +129,6 @@ const SubitemField = ({
         <TextField
           autoComplete="new-password"
           className="custom-input-component--table"
-          id={field.id}
           onChange={value => {
             changeSubitemEdits(value)
             changeSubitems(value, "text")

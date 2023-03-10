@@ -36,7 +36,7 @@ const ColumnField = ({
     <>
       {field.type === "text" && (
         <TextField
-          className="custom-input-component"
+          className="custom-input-component--table"
           id={field.id}
           onChange={value => {
             changeJobEdits(value)
@@ -69,7 +69,7 @@ const ColumnField = ({
       )}
       {field.type === "numeric" && (
         <TextField 
-          className="custom-input-component"
+          className="custom-input-component--table"
           id={field.id}
           onChange={value => {
             changeJobEdits(value)
@@ -87,6 +87,7 @@ const ColumnField = ({
       )}
       {field.type === "date" && (
         <Calendar
+          className="button--table"
           changeJobDetails={changeJobDetails}
           changeJobEdits={changeJobEdits}
           field={field}

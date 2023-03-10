@@ -23,6 +23,13 @@ const App = () => {
   )
   const [boardId, setBoardId] = useState(3715125693)
   const [columnFields, setColumnFields] = useState([])
+  const [textFields, setTextFields] = useState([])
+  const [longTextFields, setLongTextFields] = useState([])
+  const [peopleFields, setPeopleFields] = useState([])
+  const [numericFields, setNumericFields] = useState([])
+  const [dateFields, setDateFields] = useState([])
+  const [relationFields, setRelationFields] = useState([])
+  const [colorFields, setColorFields] = useState([])
   const [jobDetails, setJobDetails] = useState({})
   const [jobEdits, setJobEdits] = useState({})
   const [jobId, setJobId] = useState("")
@@ -40,7 +47,7 @@ const App = () => {
     status: ""
   })
   const [appError, setAppError] = useState("")
-  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person"])
+  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person", "button"])
   const subitemColTypes = new Set(["name", "text", "long-text", "numeric", "color", "date"])
   const [connectedBoard, setConnectedBoard] = useState({
     id: null,
@@ -78,6 +85,7 @@ const App = () => {
         const subitemsColumn = columns.filter(col => col.id === "subitems")
 
         setColumnFields(filteredColumns)
+        splitColumnFields(filteredColumns)
         setJobDetails(parseColumnsDefault(filteredColumns)) // manually set default values for certain fields
 
         // extract subitems board id 
@@ -372,7 +380,6 @@ const App = () => {
     }
 
     allFormattedSubitems.push(formattedSubitem)
-    console.log(allFormattedSubitems)
 
     return allFormattedSubitems
   }
@@ -456,21 +463,40 @@ const App = () => {
     ])
   }
 
-  const filterColumnFields = type => {
-    if (columnFields) {
-      return columnFields.filter(col => col.type === type)
+  const splitColumnFields = columns => {
+    // break up columns by type
+    const numOfCols = columns.length
+    // set each column type separately in state
+    for (let i = 0; i < numOfCols; i++) {
+      switch (columns[i].type) {
+        case "text":
+          setTextFields(prevFields => [...prevFields, columns[i]])
+          break
+        case "long-text":
+          setLongTextFields(prevFields => [...prevFields, columns[i]])
+          break
+        case "board-relation":
+          setRelationFields(prevFields => [...prevFields, columns[i]])
+          break
+        case "date":
+          setDateFields(prevFields => [...prevFields, columns[i]])
+          break
+        case "multiple-person":
+          setPeopleFields(prevFields => [...prevFields, columns[i]])
+          break
+        case "color":
+          setColorFields(prevFields => [...prevFields, columns[i]])
+          break
+        case "numeric":
+          setNumericFields(prevFields => [...prevFields, columns[i]])
+          break
+      }
     }
   }
 
   const returnColumnFields = field => {
     return (
-      <Box
-        backgroundColor={Box.backgroundColors.PRIMARY_BACKGROUND_COLOR}
-        border="none"
-        margin={Box.margins.NONE}
-        padding={Box.paddings.NONE}
-      >
-        <label htmlFor={field.id}>{field.title}</label>
+      <td>
         <ColumnField
           field={field}
           jobDetails={jobDetails}
@@ -480,8 +506,31 @@ const App = () => {
           setJobDetails={setJobDetails}
           setJobEdits={setJobEdits}
         />
-      </Box>
+      </td>
     )
+  }
+
+  const returnColumnHeaders = field => {
+    return (
+      <th>
+        <label htmlFor={field.id}>{field.title}</label>
+      </th>
+    )
+  }
+
+  const setSubitemFieldWidth = field => {
+    if (field.title === "Name") {
+      return "192px"
+    }
+    else if (field.title === "Description") {
+      return "288px"
+    }
+    else if (field.type === "numeric") {
+      return "36px"
+    }
+    else if (field.type === "text") {
+      return "36px"
+    }
   }
 
   return (
@@ -519,8 +568,20 @@ const App = () => {
             align="Start"
             justify="Start"
           >
-            <div>
-              <label htmlFor="jobId">Job number</label>
+            <Box
+              border={Box.borders.DEFAULT}
+              padding={Box.paddings.NONE}
+            >
+              <label
+                style={{
+                  width: "100%",
+                  borderBottom: "1px solid var(--ui-border-color)",
+                  padding: "4px 8px",
+                  fontWeight: 700,
+                  background: "var(--grey-background-color)"
+                }}
+                htmlFor="jobId"
+              >Job number</label>
               <Flex
                 gap={8}
                 align="start"
@@ -537,42 +598,63 @@ const App = () => {
                 <Button
                   disabled={fetching || saving}
                   loading={fetching}
+                  leftFlat
+                  rightFlat
                   onClick={() => getJob()}
                   size="small"
                 >
                   Search
                 </Button>
               </Flex>
-            </div>
-            <div>
-              <label htmlFor="name">Project name</label>
-              <TextField
-                required
-                className="is-flex-full"
-                onChange={handleJobName}
-                value={jobName}
-                validation={jobNameError}
-                id="name"
-              />
-            </div>
-            <Flex
-              gap={Flex.gaps.NONE}
-            >
-              {filterColumnFields("text").map(field => returnColumnFields(field))}
-              {filterColumnFields("board-relation").map(field => returnColumnFields(field))}
-              {filterColumnFields("date").map(field => returnColumnFields(field))}
-              {filterColumnFields("multiple-person").map(field => returnColumnFields(field))}
-              {filterColumnFields("color").map(field => returnColumnFields(field))}
-            </Flex>
-            <Flex
-              gap={Flex.gaps.NONE}
-            >
-              {filterColumnFields("long-text").map(field => returnColumnFields(field))}
-            </Flex>
+            </Box>
+            <table>
+              <thead>
+                <th style={{width: "192px"}}><label htmlFor="job-name">Job Name</label></th>
+                {textFields.map(field => returnColumnHeaders(field))}
+                {relationFields.map(field => returnColumnHeaders(field))}
+                {dateFields.map(field => returnColumnHeaders(field))}
+                {peopleFields.map(field => returnColumnHeaders(field))}
+                {colorFields.map(field => returnColumnHeaders(field))}
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <TextField
+                      className="custom-input-component--table"
+                      required
+                      autoComplete="off"
+                      onChange={handleJobName}
+                      value={jobName}
+                      validation={jobNameError}
+                      id="job-name"
+                    />
+                  </td>
+                  {textFields.map(field => returnColumnFields(field))}
+                  {relationFields.map(field => returnColumnFields(field))}
+                  {dateFields.map(field => returnColumnFields(field))}
+                  {peopleFields.map(field => returnColumnFields(field))}
+                  {colorFields.map(field => returnColumnFields(field))}
+                </tr>
+              </tbody>
+            </table>
+            <table>
+              <thead>
+                {longTextFields.map(field => returnColumnHeaders(field))}
+              </thead>
+              <tbody>
+                <tr>
+                  {longTextFields.map(field => returnColumnFields(field))}
+                </tr>
+              </tbody>
+            </table>
             <table>
               <thead>
                 {subitemFields.map(field => (
-                  <th>{field.title}</th>
+                  <th
+                    style={{ width: setSubitemFieldWidth(field)}}
+                  >
+                    {field.title}
+                  </th>
                 ))}
               </thead>
               <tbody>
@@ -604,7 +686,6 @@ const App = () => {
                 </tr>
               </tbody>
             </table>
-            <Flex>{filterColumnFields("numeric").map(field => returnColumnFields(field))}</Flex>
             <Button
               onClick={() => saveJob()}
               loading={saving}

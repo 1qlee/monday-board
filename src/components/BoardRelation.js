@@ -143,7 +143,7 @@ const BoardRelation = ({
   return (
     <div className="combobox--wrapper--custom">
       <Combobox
-        className={showItems ? null : "is-hidden-combobox"}
+        className={showItems ? "combobox-custom-component" : "is-hidden-combobox"}
         clearFilterOnSelection={false}
         id={field.id}
         loading={loading}

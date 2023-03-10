@@ -64,22 +64,17 @@ const People = ({
 
   return (
     <>
-      <Button
+      <button
+        className="button--table"
         color={Button.colors.PRIMARY}
         kind={Button.kinds.SECONDARY}
         size={Button.sizes.SMALL}
         onClick={() => setShowList(!showList)}
       >
-        <Avatar className="list-item-avatar" src={activePerson.src} size="small" type="img" ></Avatar>
         {activePerson.name}
-      </Button>
+      </button>
       {showList && (
-        <DialogContentContainer
-          style={{
-            height: "204px",
-            position: "absolute",
-          }}
-        >
+        <DialogContentContainer className="floating-menu">
           <List
             dense={true}
           >

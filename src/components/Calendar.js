@@ -32,7 +32,7 @@ const Calendar = ({
 
   return (
     <>
-      <Button
+      <button
         className={className}
         color={Button.colors.PRIMARY}
         kind={Button.kinds.SECONDARY}
@@ -40,7 +40,7 @@ const Calendar = ({
         onClick={() => setShowPicker(!showPicker)}
       >
         {handleButtonText()}
-      </Button>
+      </button>
       {showPicker && (
         <DatePicker
           className="date-picker-component"

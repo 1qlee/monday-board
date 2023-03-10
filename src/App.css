@@ -16,37 +16,44 @@ fieldset {
 table {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   border-collapse: collapse;
+  width: 100%;
 }
 
 th {
-  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  --font-general-label: 700 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   background-color: var(--grey-background-color);
+  box-sizing: border-box;
   border: 1px solid var(--ui-border-color);
   font-family: var(--font-family);
   font: var(--font-general-label);
   margin: 0;
   padding: 4px 8px;
   text-align: left;
+  position: relative;
+}
+
+th label {
+  font-weight: 700 !important;
 }
 
 td {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
-  background-color: var(--grey-background-color);
   border: 1px solid var(--ui-border-color);
+  box-sizing: border-box;
   font-family: var(--font-family);
   font: var(--font-general-label);
   margin: 0;
   padding: 0;
   text-align: left;
+  position: relative;
 }
 
 textarea {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   display: block;
   background-color: var(--primary-background-color) !important;
-  border: 1px solid #c3c6d4;
-  border-color: var(--ui-border-color);
-  border-radius: 4px;
+  border: 1px solid transparent;
+  border-radius: 0;
   box-sizing: border-box;
   color: #323338;
   color: var(--primary-text-color);
@@ -73,12 +80,8 @@ textarea:focus {
 
 label {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
-  background-color: var(--grey-background-color);
   display: block;
   font: var(--font-general-label);
-  border: 1px solid var(--ui-border-color);
-  padding: 4px 8px;
-  font-weight: 400;
 }
 
 input {
@@ -137,7 +140,7 @@ input {
   position: absolute !important;
   top: 100% !important;
   width: 100% !important;
-  z-index: 99 !important;
+  z-index: 999 !important;
 }
 
 .is-hidden-combobox .virtualized-list--wrapper {
@@ -149,8 +152,20 @@ input {
   border-radius: 0 !important;
 }
 
+.combobox--wrapper-search {
+  border-radius: 0 !important;
+  border-color: transparent !important;
+  padding: 8px !important;
+}
+
 .combobox--wrapper-list {
   padding: 0 !important;
+  z-index: 999;
+  margin: 0 !important;
+}
+
+.combobox--wrapper {
+  margin: 0 !important;
 }
 
 .combobox--wrapper--custom {
@@ -164,7 +179,7 @@ input {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 99;
+  z-index: 99999;
 }
 
 .custom--wrapper--input.is-active {
@@ -172,9 +187,15 @@ input {
 }
 
 .button--table {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   height: 34px !important;
-  border-color: transparent !important;
-  border-radius: 0 !important;
+  border-radius: 0;
+  width: 100%;
+  border: none;
+  white-space: nowrap;
+  background-color: #fff;
+  font: var(--font-general-label);
+  cursor: pointer;
 }
 
 .custom-input-component {
@@ -183,8 +204,8 @@ input {
   -webkit-font-smoothing: var(--font-smoothing-webkit);
   -moz-osx-font-smoothing: grayscale;
   -moz-osx-font-smoothing: var(--font-smoothing-moz);
-  border-radius: 0;
-  border: 1px solid var(--ui-border-color);
+  border-radius: 0 !important;
+  border: 1px solid transparent !important;
   box-sizing: border-box;
   color: var(--primary-text-color);
   font: var(--font-general-label);
@@ -203,9 +224,18 @@ input {
 .custom-input-component--table {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   box-sizing: border-box;
-  border-radius: 0;
+  border-radius: 0 !important;
+  border: 1px solid transparent !important;
   border-color: transparent !important;
   padding: 8px !important;
+}
+
+.custom-input-component--table:hover {
+  border-color: var(--color-black) !important;
+}
+
+.custom-input-component--table:focus {
+  border-color: var(--primary-color) !important;
 }
 
 .custom-input-icon--wrapper {
@@ -244,11 +274,13 @@ input {
 }
 
 .custom-chip-component {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   display: flex !important;
   height: 34px !important;
   justify-content: center;
   box-sizing: border-box;
   border-radius: 0 !important;
+  font: var(--font-general-label);
   margin: 0 !important;
 }
 
@@ -286,3 +318,12 @@ input {
   padding: 4px 8px !important;
 }
 
+.floating-menu {
+  box-sizing: border-box;
+  left: 50%;
+  padding: 4px !important;
+  position: absolute;
+  top: calc(100% + 4px);
+  transform: translateX(-50%);
+  z-index: 100;
+}

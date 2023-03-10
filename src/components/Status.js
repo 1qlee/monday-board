@@ -76,12 +76,7 @@ const Status = ({
         onClick={e => setShowList(!showList)}
       />
       {showList && (
-        <DialogContentContainer
-          style={{
-            position: "absolute",
-            zIndex: "999",
-          }}
-        >
+        <DialogContentContainer className="floating-menu">
           <List
             dense={true}
           >
