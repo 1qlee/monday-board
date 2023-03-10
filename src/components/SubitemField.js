@@ -104,7 +104,7 @@ const SubitemField = ({
       )}
       {field.type === "text" && (
         <TextField
-          autoComplete="new-password"
+          autoComplete="off"
           className="custom-input-component--table"
           onChange={value => {
             changeSubitemEdits(value)
@@ -127,7 +127,7 @@ const SubitemField = ({
       )}
       {field.type === "numeric" && (
         <TextField
-          autoComplete="new-password"
+          autoComplete="off"
           className="custom-input-component--table"
           onChange={value => {
             changeSubitemEdits(value)
