@@ -327,3 +327,11 @@ input {
   transform: translateX(-50%);
   z-index: 100;
 }
+
+.label-header {
+  width: 100%;
+  border-bottom: 1px solid var(--ui-border-color);
+  padding: 4px 8px;
+  font-weight: 700;
+  background: var(--grey-background-color);
+}

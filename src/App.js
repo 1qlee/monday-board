@@ -47,7 +47,7 @@ const App = () => {
     status: ""
   })
   const [appError, setAppError] = useState("")
-  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person", "button"])
+  const colTypes = new Set(["text", "board-relation", "long-text", "numeric", "color", "date", "multiple-person"])
   const subitemColTypes = new Set(["name", "text", "long-text", "numeric", "color", "date"])
   const [connectedBoard, setConnectedBoard] = useState({
     id: null,
@@ -568,45 +568,44 @@ const App = () => {
             align="Start"
             justify="Start"
           >
-            <Box
-              border={Box.borders.DEFAULT}
-              padding={Box.paddings.NONE}
+            <Flex
+              align={Flex.align.START}
+              justify={Flex.justify.SPACE_BETWEEN}
             >
-              <label
-                style={{
-                  width: "100%",
-                  borderBottom: "1px solid var(--ui-border-color)",
-                  padding: "4px 8px",
-                  fontWeight: 700,
-                  background: "var(--grey-background-color)"
-                }}
-                htmlFor="jobId"
-              >Job number</label>
-              <Flex
-                gap={8}
-                align="start"
+              <Box
+                border={Box.borders.DEFAULT}
+                padding={Box.paddings.NONE}
               >
-                <TextField
-                  id="jobId"
-                  onChange={handleJobId}
-                  onKeyDown={e => e.key === "Enter" && getJob()}
-                  placeholder="Leave blank to create a new job"
-                  iconName={jobIdValidation.status === "success" && Check}
-                  className={jobIdValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
-                  validation={jobIdValidation}
-                />
-                <Button
-                  disabled={fetching || saving}
-                  loading={fetching}
-                  leftFlat
-                  rightFlat
-                  onClick={() => getJob()}
-                  size="small"
+                <label
+                  className="label-header"
+                  htmlFor="jobId"
+                >Job number</label>
+                <Flex
+                  gap={8}
+                  align="start"
                 >
-                  Search
-                </Button>
-              </Flex>
-            </Box>
+                  <TextField
+                    id="jobId"
+                    onChange={handleJobId}
+                    onKeyDown={e => e.key === "Enter" && getJob()}
+                    placeholder="Leave blank to create a new job"
+                    iconName={jobIdValidation.status === "success" && Check}
+                    className={jobIdValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
+                    validation={jobIdValidation}
+                  />
+                  <Button
+                    disabled={fetching || saving}
+                    loading={fetching}
+                    leftFlat
+                    rightFlat
+                    onClick={() => getJob()}
+                    size="small"
+                  >
+                    Search
+                  </Button>
+                </Flex>
+              </Box>
+            </Flex>
             <table>
               <thead>
                 <th style={{width: "192px"}}><label htmlFor="job-name">Job Name</label></th>
