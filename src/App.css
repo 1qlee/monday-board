@@ -213,12 +213,20 @@ input {
   height: 100%;
   outline: 0;
   overflow: hidden;
-  padding: 4px 8px;
+  padding: 4px 8px !important;
   position: relative;
   text-overflow: ellipsis;
   transition: border-color var(--motion-productive-medium) ease-in;
   white-space: nowrap;
   width: 100%;
+}
+
+.custom-input-component:hover {
+  border-color: var(--color-black) !important;
+}
+
+.custom-input-component:focus {
+  border-color: var(--primary-color) !important;
 }
 
 .custom-input-component--table {
