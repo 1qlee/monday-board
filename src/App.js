@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import mondaySdk from "monday-sdk-js";
 import "monday-ui-react-core/dist/main.css";
-import { Check, Add } from "monday-ui-react-core/icons";
+import { Check } from "monday-ui-react-core/icons";
 import useKeyboardShortcut from "use-keyboard-shortcut"
 import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast, IconButton, RadioButton } from "monday-ui-react-core"
 import ColumnField from "./components/ColumnField"
@@ -82,6 +82,7 @@ const App = () => {
       // column query will return an array of objects where each object is a column/field 
       // then convert this array to an object with id:text pairs
       monday.api(columnsQuery).then(res => {
+        console.log(res)
         const columns = res.data.boards[0].columns
         // filter all columns by the columns specified in settings
         const filteredColumns = columns.filter(col => colTypes.has(col.type))
@@ -116,6 +117,7 @@ const App = () => {
         // extract subitems board id 
         return JSON.parse(subitemsColumn[0].settings_str).boardIds[0]
       }).then(parsedBoardId => {
+        console.log(parsedBoardId)
         setSubitemBoardId(parsedBoardId)
         // query for all columns in the subitem board
         const subitemsQuery = `query { boards (ids: ${parsedBoardId}) { columns { title type id settings_str }}}`
@@ -689,11 +691,12 @@ const App = () => {
                 ))}
                 <tr>
                   <td>
-                    <IconButton
-                      ariaLabel="Add row"
-                      icon={Add}
+                    <button
+                      className="button--table"
                       onClick={() => handleAddSubitemRow()}
-                    />
+                    >
+                      Add row
+                    </button>
                   </td>
                 </tr>
               </tbody>

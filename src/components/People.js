@@ -74,7 +74,7 @@ const People = ({
         {activePerson.name}
       </button>
       {showList && (
-        <DialogContentContainer className="floating-menu">
+        <DialogContentContainer>
           <List
             dense={true}
           >

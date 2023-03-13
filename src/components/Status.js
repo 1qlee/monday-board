@@ -24,13 +24,14 @@ const Status = ({
       const newLabel = {
         text: labels[label],
         style: settings.labels_colors[label],
+        // position: settings.labels_positions_v2[label],
         index: label,
       }
 
       labelsArray.push(newLabel)
     }
 
-    labelsArray.sort((a, b) => a.position - b.position)
+    // labelsArray.sort((a, b) => a.position - b.position)
 
     if (jobDetails[field.id].text && jobDetails[field.id].value) {
       const activeLabelIndex = JSON.parse(jobDetails[field.id].value).index
