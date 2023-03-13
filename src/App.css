@@ -213,7 +213,7 @@ input {
   height: 100%;
   outline: 0;
   overflow: hidden;
-  padding: 8px;
+  padding: 4px 8px;
   position: relative;
   text-overflow: ellipsis;
   transition: border-color var(--motion-productive-medium) ease-in;
@@ -334,4 +334,14 @@ input {
   padding: 4px 8px;
   font-weight: 700;
   background: var(--grey-background-color);
+}
+
+.padded-border-bottom {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--ui-border-color);
+}
+
+.padded-border-bottom span {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  font: var(--font-general-label);
 }

@@ -5,7 +5,7 @@ import mondaySdk from "monday-sdk-js";
 import "monday-ui-react-core/dist/main.css";
 import { Check, Add } from "monday-ui-react-core/icons";
 import useKeyboardShortcut from "use-keyboard-shortcut"
-import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast, IconButton } from "monday-ui-react-core"
+import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast, IconButton, RadioButton } from "monday-ui-react-core"
 import ColumnField from "./components/ColumnField"
 import SubitemField from "./components/SubitemField"
 
@@ -21,7 +21,7 @@ const App = () => {
       repeatOnHold: false
     }
   )
-  const [boardId, setBoardId] = useState(3715125693)
+  const [boardId, setBoardId] = useState(4124009029)
   const [columnFields, setColumnFields] = useState([])
   const [textFields, setTextFields] = useState([])
   const [longTextFields, setLongTextFields] = useState([])
@@ -32,17 +32,17 @@ const App = () => {
   const [colorFields, setColorFields] = useState([])
   const [jobDetails, setJobDetails] = useState({})
   const [jobEdits, setJobEdits] = useState({})
-  const [jobId, setJobId] = useState("")
-  const [jobName, setJobName] = useState("")
+  const [jobNumber, setJobNumber] = useState("")
+  const [jobId, setJobId] = useState(0)
   const [subitemBoardId, setSubitemBoardId] = useState(0)
   const [subitemEdits, setSubitemEdits] = useState([])
   const [subitems, setSubitems] = useState([])
   const [subitemFields, setSubitemFields] = useState([])
-  const [jobIdValidation, setJobIdValidation] = useState({
+  const [jobNumberError, setJobNumberError] = useState({
     text: "",
-    status: ""
+    status: "",
   })
-  const [jobNameError, setJobNameError] = useState({
+  const [jobNumberValidation, setJobNumberValidation] = useState({
     text: "",
     status: ""
   })
@@ -62,6 +62,8 @@ const App = () => {
     type: "positive",
     open: false,
   })
+  const uimsLabels = ["UP", "QU", "CL"]
+  const [activeUimsLabel, setActiveUimsLabel] = useState("UP")
 
   flushHeldKeys()
 
@@ -71,9 +73,10 @@ const App = () => {
     // get the current boardId from Monday then run a query to get all columns from that board
     // then filter those columns by inputtable fields (e.g. text)
     monday.get("context").then(res => {
+      const currentBoardId = res.data.boardIds[0]
       // res should be the context for the current board that the user has installed this app in
-      setBoardId(res.data.boardId || 3715125693);
-      const columnsQuery = `query { boards (ids: ${boardId}) { columns { title type id settings_str }}}`
+      setBoardId(currentBoardId);
+      const columnsQuery = `query { boards (ids: ${currentBoardId}) { columns { title type id settings_str }}}`
 
       // query for all columns belonging to this board then filter them based on user-inputtable fields (as defined in const coltypes
       // column query will return an array of objects where each object is a column/field 
@@ -82,7 +85,29 @@ const App = () => {
         const columns = res.data.boards[0].columns
         // filter all columns by the columns specified in settings
         const filteredColumns = columns.filter(col => colTypes.has(col.type))
+        // filter out subitem columns for mapping
         const subitemsColumn = columns.filter(col => col.id === "subitems")
+        // filter out the UIMS column to create incremented names
+        const uimsColumn = columns.filter(col => col.title === "UIMS")
+        const namesQuery = `query { items_by_column_values(board_id: ${currentBoardId}, column_id: ${uimsColumn[0].id}, column_value: ${activeUimsLabel}) { name }}`
+
+        // auto populate the name field with an incremented uims label identifier
+        monday.api(namesQuery).then(res => {
+          const allNames = res.data.items_by_column_values
+
+          if (allNames.length > 0) {
+            const lastName = res.data.items_by_column_values.pop().name
+            const splitName = lastName.split('-')
+            const newName = `${splitName[0]}-${+splitName[1] + 1}`
+            
+            setJobNumber(newName)
+          }
+          else {
+            const currentYear = new Date().getFullYear()
+
+            setJobNumber(`${activeUimsLabel}${currentYear}-1`)
+          }
+        })
 
         setColumnFields(filteredColumns)
         splitColumnFields(filteredColumns)
@@ -115,55 +140,53 @@ const App = () => {
     setSubitemEdits([])
     setJobEdits({})
 
-    if (jobId) {
+    // if user has inputted a job number, run a query for it
+    if (jobNumber) {
       setFetching(true)
-      const jobQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { name column_values { text type title value id }}}}`;
+      const stringifiedJobNumber = JSON.stringify(jobNumber)
+      const jobNumberQuery = `query { items_by_column_values (board_id: ${boardId}, column_id: name, column_value: ${stringifiedJobNumber}) { id column_values { text type title value id } subitems { id name column_values { text type title value id }}}}`
 
       // query for all column values for the specified job (board item)
-      monday.api(jobQuery).then(res => {
-        if (res.data.boards[0].items.length > 0) {
-          const results = res.data.boards[0].items[0]
-          const { name } = results
-          const columns = results.column_values
-          const filteredColumns = columns.filter(col => colTypes.has(col.type))
+      monday.api(jobNumberQuery).then(res => {
+        const jobItem = res.data.items_by_column_values[0]
+        console.log(jobItem)
 
-          setJobIdValidation({
+        if (jobItem && jobItem.constructor === Object && Object.keys(jobItem).length > 0) {
+          const { id, subitems, column_values } = jobItem
+          console.log(id, subitems, column_values)
+          const filteredColumns = column_values.filter(col => colTypes.has(col.type))
+
+          setJobId(id)
+          setJobNumberValidation({
             text: "",
             status: "success",
           })
-          setJobName(name)
           setJobDetails(parseColumns(filteredColumns))
+
+          if (subitems) {
+            setSubitems(parseSubitems(subitems))
+          }
+          else {
+            setSubitems(parseSubitemsDefault(subitems))
+          }
+
+          setFetching(false)
         }
         else {
           throw new Error("This job number doesn't exist!")
         }
-      }).then(() => {
-        const subitemQuery = `query { boards (ids: ${boardId}) { items(ids: ${jobId}) { subitems { id name column_values { text type title value id}}}}}`
-
-        // query for all subitem values
-        monday.api(subitemQuery).then(res => {
-          const results = res.data.boards[0].items[0].subitems
-
-          if (results) {
-            setSubitems(parseSubitems(results))
-          }
-          else {
-            setSubitems(parseSubitemsDefault(subitemFields))
-          }
-
-          setFetching(false)
-        })
-      }).catch(() => {
-        setJobIdValidation({
+      }).catch(error => {
+        console.log(error)
+        setJobNumberValidation({
           text: "This job number doesn't exist!",
           status: "error",
         })
         setFetching(false)
       });
     }
-    // else user has searched while leaving the jobId input blank
+    // else user has searched while leaving the jobNumber input blank
     else {
-      setJobIdValidation({
+      setJobNumberValidation({
         text: "Please enter a job number!",
         status: "error",
       })
@@ -172,8 +195,6 @@ const App = () => {
 
   // save new job details or create a new job
   const saveJob = () => {
-    console.log(connectedBoard)
-    console.log(jobDetails)
     // check if we need to create an item in a connected board
     if (connectedBoard.id) {
       const stringifiedItemName = JSON.stringify(connectedBoard.name)
@@ -181,7 +202,6 @@ const App = () => {
       const itemsArray = []
 
       monday.api(createItemQuery).then(res => {
-        console.log(res)
         itemsArray[0] = res.id
 
         setJobDetails({
@@ -194,19 +214,18 @@ const App = () => {
         console.log(error)
       })
     }
-    // check if the user has inputted a jobName
-    if (jobName) {
+    // check if the user has inputted a job number and a job id exists aka user has performed a successful search
+    if (jobNumber && jobId) {
       setSaving(true)
-      const stringifiedJobName = JSON.stringify(jobName)
 
-      // if jobId exists, we are updating an existing job item
-      if (jobId) {
-        const newJob = {
+      // if jobNumber exists, we are updating an existing job item
+      if (jobNumber) {
+        const updateJob = {
           ...jobEdits,
-          name: jobName
+          name: jobNumber
         }
         // turn newJob into a JSON string so its readable in Monday
-        const mutationString = JSON.stringify(JSON.stringify(newJob))
+        const mutationString = JSON.stringify(JSON.stringify(updateJob))
         const updateJobQuery = `mutation { change_multiple_column_values(board_id: ${boardId}, item_id: ${jobId}, column_values: ${mutationString}) { id }}`
 
         // update the job
@@ -219,11 +238,8 @@ const App = () => {
           if (numOfSubitems > 0) {
             for (let i = 0; i < numOfSubitems; i++) {
               const currentSubitem = subitemEdits[i]
-              console.log(currentSubitem)
               const stringifiedSubitemName = currentSubitem.column_values.name
-              console.log(stringifiedSubitemName)
               const mutationString = JSON.stringify(JSON.stringify(currentSubitem.column_values))
-              console.log(mutationString)
 
               // check if the subitem exists by checking id
               if (currentSubitem.id) {
@@ -267,8 +283,8 @@ const App = () => {
           }
         }).catch(error => {
           console.log(error)
-          // almost always the error will be because of an invalid jobId
-          setJobIdValidation({
+          // almost always the error will be because of an invalid jobNumber
+          setJobNumberValidation({
             text: "This job number doesn't exist!",
             status: "error",
           })
@@ -277,9 +293,10 @@ const App = () => {
       }
       // otherwise create a new job
       else {
+        const stringifiedJobNumber = JSON.stringify(jobNumber)
         // for some reason we need to stringify twice for Monday api to understand
         const mutationString = JSON.stringify(JSON.stringify(jobEdits))
-        const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobName}, column_values: ${mutationString}) { id }}`
+        const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobNumber}, column_values: ${mutationString}) { id }}`
 
         monday.api(createJobQuery).then(res => {
           return res.data.create_item.id
@@ -321,8 +338,8 @@ const App = () => {
       }
     }
     else {
-      setJobNameError({
-        text: "You must enter a name for this job.",
+      setJobNumberError({
+        text: "You must enter a number for this job.",
         status: "error",
       })
     }
@@ -430,17 +447,11 @@ const App = () => {
     return defaultValues
   }
 
-  const handleJobId = value => {
-    setJobIdValidation({})
+  const handleJobNumber = value => {
+    const stringifiedValue = String(value)
+    setJobNumberValidation({})
     setAppError("")
-    setJobId(value)
-  }
-
-  const handleJobName = value => {
-    const stringVal = String(value)
-    setAppError("")
-    setJobNameError({})
-    setJobName(stringVal)
+    setJobNumber(stringifiedValue)
   }
 
   const handleAddSubitemRow = () => {
@@ -576,22 +587,36 @@ const App = () => {
                 border={Box.borders.DEFAULT}
                 padding={Box.paddings.NONE}
               >
+                <Flex
+                  gap={16}
+                  className="padded-border-bottom"
+                >
+                  {uimsLabels.map(label => (
+                    <div onClick={() => setActiveUimsLabel(label)}>
+                      <RadioButton 
+                        text={label}
+                        checked={label === activeUimsLabel}
+                      />
+                    </div>
+                  ))}
+                </Flex>
                 <label
                   className="label-header"
-                  htmlFor="jobId"
+                  htmlFor="job-number"
                 >Job number</label>
                 <Flex
                   gap={8}
                   align="start"
                 >
                   <TextField
-                    id="jobId"
-                    onChange={handleJobId}
+                    id="job-number"
+                    value={jobNumber}
+                    onChange={handleJobNumber}
                     onKeyDown={e => e.key === "Enter" && getJob()}
                     placeholder="Leave blank to create a new job"
-                    iconName={jobIdValidation.status === "success" && Check}
-                    className={jobIdValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
-                    validation={jobIdValidation}
+                    iconName={jobNumberValidation.status === "success" && Check}
+                    className={jobNumberValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
+                    validation={jobNumberValidation}
                   />
                   <Button
                     disabled={fetching || saving}
@@ -608,7 +633,6 @@ const App = () => {
             </Flex>
             <table>
               <thead>
-                <th style={{width: "192px"}}><label htmlFor="job-name">Job Name</label></th>
                 {textFields.map(field => returnColumnHeaders(field))}
                 {relationFields.map(field => returnColumnHeaders(field))}
                 {dateFields.map(field => returnColumnHeaders(field))}
@@ -617,17 +641,6 @@ const App = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td>
-                    <TextField
-                      className="custom-input-component--table"
-                      required
-                      autoComplete="off"
-                      onChange={handleJobName}
-                      value={jobName}
-                      validation={jobNameError}
-                      id="job-name"
-                    />
-                  </td>
                   {textFields.map(field => returnColumnFields(field))}
                   {relationFields.map(field => returnColumnFields(field))}
                   {dateFields.map(field => returnColumnFields(field))}
@@ -690,7 +703,7 @@ const App = () => {
               loading={saving}
               disabled={fetching || saving}
             >
-              {jobId ? (
+              {jobNumber ? (
                 "Save"
               ) : (
                 "Submit"

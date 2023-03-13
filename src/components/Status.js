@@ -24,7 +24,6 @@ const Status = ({
       const newLabel = {
         text: labels[label],
         style: settings.labels_colors[label],
-        position: settings.labels_positions_v2[label],
         index: label,
       }
 
