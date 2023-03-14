@@ -298,44 +298,53 @@ const App = () => {
         let stringifiedJobNumber = JSON.stringify(jobNumber)
         const jobNumberQuery = `query { items_by_column_values(board_id: ${boardId}, column_id: name, column_value: ${stringifiedJobNumber}) { id }}`
         
-        monday.api(jobNumberQuery).then(async res => {
-          const doesJobExist = await res.data.items_by_column_values[0]
-          console.log("1")
+        monday.api(jobNumberQuery).then(res => {
+          const doesJobExist = res.data.items_by_column_values[0].id
           // check whether current job number already exists
-          if (doesJobExist.id) {
+          if (doesJobExist) {
             // if job number exists, run a query for all items by UIMS label so we can make sure we get the latest number
             const numbersQuery = `query { items_by_column_values(board_id: ${boardId}, column_id: ${uimsColId}, column_value: ${activeUimsLabel}) { name }}`
 
-            monday.api(numbersQuery).then(async res => {
-              console.log("2")
-              const lastNumber = await res.data.items_by_column_values.pop().name
+            monday.api(numbersQuery).then(res => {
+              const lastNumber = res.data.items_by_column_values.pop().name
+              console.log(lastNumber)
               const splitNumber = lastNumber.split('-')
               const newNumber = `${splitNumber[0]}-${+splitNumber[1] + 1}`
+              console.log(newNumber)
 
               setJobNumber(newNumber)
-              stringifiedJobNumber = JSON.stringify(newNumber)
-            })
-          }
-        })
-        // for some reason we need to stringify twice for Monday api to understand
-        const mutationString = JSON.stringify(JSON.stringify(jobEdits))
-        const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobNumber}, column_values: ${mutationString}) { id }}`
+              return JSON.stringify(newNumber)
+            }).then(newJobNumber => {
+              // for some reason we need to stringify twice for Monday api to understand
+              const mutationString = JSON.stringify(JSON.stringify(jobEdits))
+              const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${newJobNumber}, column_values: ${mutationString}) { id }}`
 
-        monday.api(createJobQuery).then(res => {
-          console.log("3")
-          return res.data.create_item.id
-        }).then(parentItemId => {
-          const numOfSubitems = subitemEdits.length
+              monday.api(createJobQuery).then(res => {
+                console.log(stringifiedJobNumber)
+                return res.data.create_item.id
+              }).then(parentItemId => {
+                const numOfSubitems = subitemEdits.length
 
-          if (numOfSubitems > 0) {
-            for (let i = 0; i < numOfSubitems; i++) {
-              const currentSubitem = subitemEdits[i].column_values
-              const mutationString = JSON.stringify(JSON.stringify(currentSubitem))
-              const stringifiedSubitemName = JSON.stringify(currentSubitem.name)
-              const createSubitemQuery = `mutation { create_subitem (parent_item_id: ${parentItemId}, item_name: ${stringifiedSubitemName}, column_values: ${mutationString}) { id }}`
+                if (numOfSubitems > 0) {
+                  for (let i = 0; i < numOfSubitems; i++) {
+                    const currentSubitem = subitemEdits[i].column_values
+                    const mutationString = JSON.stringify(JSON.stringify(currentSubitem))
+                    const stringifiedSubitemName = JSON.stringify(currentSubitem.name)
+                    const createSubitemQuery = `mutation { create_subitem (parent_item_id: ${parentItemId}, item_name: ${stringifiedSubitemName}, column_values: ${mutationString}) { id }}`
 
-              monday.api(createSubitemQuery).then(() => {
-                if (i === numOfSubitems - 1) {
+                    monday.api(createSubitemQuery).then(() => {
+                      if (i === numOfSubitems - 1) {
+                        setToast({
+                          msg: "Successfully created a new job.",
+                          type: "positive",
+                          open: true,
+                        })
+                        return setSaving(false)
+                      }
+                    })
+                  }
+                }
+                else {
                   setToast({
                     msg: "Successfully created a new job.",
                     type: "positive",
@@ -343,21 +352,57 @@ const App = () => {
                   })
                   return setSaving(false)
                 }
+              }).catch(error => {
+                console.log(error)
+                setAppError("Could not process. Please refresh and try again.")
+                setSaving(false)
               })
-            }
+            })
           }
           else {
-            setToast({
-              msg: "Successfully created a new job.",
-              type: "positive",
-              open: true,
+            // for some reason we need to stringify twice for Monday api to understand
+            const mutationString = JSON.stringify(JSON.stringify(jobEdits))
+            const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobNumber}, column_values: ${mutationString}) { id }}`
+
+            monday.api(createJobQuery).then(res => {
+              console.log(stringifiedJobNumber)
+              return res.data.create_item.id
+            }).then(parentItemId => {
+              const numOfSubitems = subitemEdits.length
+
+              if (numOfSubitems > 0) {
+                for (let i = 0; i < numOfSubitems; i++) {
+                  const currentSubitem = subitemEdits[i].column_values
+                  const mutationString = JSON.stringify(JSON.stringify(currentSubitem))
+                  const stringifiedSubitemName = JSON.stringify(currentSubitem.name)
+                  const createSubitemQuery = `mutation { create_subitem (parent_item_id: ${parentItemId}, item_name: ${stringifiedSubitemName}, column_values: ${mutationString}) { id }}`
+
+                  monday.api(createSubitemQuery).then(() => {
+                    if (i === numOfSubitems - 1) {
+                      setToast({
+                        msg: "Successfully created a new job.",
+                        type: "positive",
+                        open: true,
+                      })
+                      return setSaving(false)
+                    }
+                  })
+                }
+              }
+              else {
+                setToast({
+                  msg: "Successfully created a new job.",
+                  type: "positive",
+                  open: true,
+                })
+                return setSaving(false)
+              }
+            }).catch(error => {
+              console.log(error)
+              setAppError("Could not process. Please refresh and try again.")
+              setSaving(false)
             })
-            return setSaving(false)
           }
-        }).catch(error => {
-          console.log(error)
-          setAppError("Could not process. Please refresh and try again.")
-          setSaving(false)
         })
       }
     }
