@@ -302,7 +302,7 @@ const App = () => {
       else {
         let stringifiedJobNumber = JSON.stringify(jobNumber)
         // this query will check whether current job number already exists
-        console.log("Checking if job number exists...")
+        console.log(`Checking if job number: ${stringifiedJobNumber} exists...`)
         const jobNumberQuery = `query { items_by_column_values(board_id: ${boardId}, column_id: name, column_value: ${stringifiedJobNumber}) { id }}`
         
         monday.api(jobNumberQuery).then(res => {
@@ -375,6 +375,7 @@ const App = () => {
             })
           }
           else {
+            console.log(`Did not find ${stringifiedJobNumber}`)
             const updateJob = {
               ...jobEdits,
               [uimsColId]: { label: activeUimsLabel }
