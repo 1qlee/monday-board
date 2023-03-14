@@ -38,7 +38,6 @@ const App = () => {
   const [subitemEdits, setSubitemEdits] = useState([])
   const [subitems, setSubitems] = useState([])
   const [subitemFields, setSubitemFields] = useState([])
-  const [uimsColId, setUimsColId] = useState("")
   const [jobNumberError, setJobNumberError] = useState({
     text: "",
     status: "",
@@ -65,6 +64,7 @@ const App = () => {
   })
   const uimsLabels = ["UP", "QU", "CL"]
   const [activeUimsLabel, setActiveUimsLabel] = useState("UP")
+  const [uimsColId, setUimsColId] = useState("")
 
   flushHeldKeys()
 
@@ -90,6 +90,7 @@ const App = () => {
         const subitemsColumn = columns.filter(col => col.id === "subitems")
         // filter out the UIMS column to create incremented names
         const uimsColumn = columns.filter(col => col.title === "UIMS")
+        console.log(uimsColumn)
         setUimsColId(uimsColumn[0].id)
         const namesQuery = `query { items_by_column_values(board_id: ${currentBoardId}, column_id: ${uimsColumn[0].id}, column_value: ${activeUimsLabel}) { name }}`
 
@@ -98,11 +99,11 @@ const App = () => {
           const allNames = res.data.items_by_column_values
 
           if (allNames.length > 0) {
+            console.log(allNames)
             const lastName = res.data.items_by_column_values.pop().name
-            const splitName = lastName.split('-')
-            const newName = `${splitName[0]}-${+splitName[1] + 1}`
+            console.log(lastName)
             
-            setJobNumber(newName)
+            setJobNumber(incrementJobNumber(lastName))
           }
           else {
             const currentYear = new Date().getFullYear()
@@ -254,6 +255,8 @@ const App = () => {
                       type: "positive",
                       open: true,
                     })
+                    resetUims()
+
                     return setSaving(false)
                   }
                 })
@@ -269,6 +272,8 @@ const App = () => {
                       type: "positive",
                       open: true,
                     })
+                    resetUims()
+
                     return setSaving(false)
                   }
                 })
@@ -296,31 +301,37 @@ const App = () => {
       // otherwise create a new job
       else {
         let stringifiedJobNumber = JSON.stringify(jobNumber)
+        // this query will check whether current job number already exists
+        console.log("Checking if job number exists...")
         const jobNumberQuery = `query { items_by_column_values(board_id: ${boardId}, column_id: name, column_value: ${stringifiedJobNumber}) { id }}`
         
         monday.api(jobNumberQuery).then(res => {
-          const doesJobExist = res.data.items_by_column_values[0].id
-          // check whether current job number already exists
+          const doesJobExist = res.data.items_by_column_values[0]
+
           if (doesJobExist) {
+            console.log(`Job number: ${jobNumber} exists!`)
             // if job number exists, run a query for all items by UIMS label so we can make sure we get the latest number
             const numbersQuery = `query { items_by_column_values(board_id: ${boardId}, column_id: ${uimsColId}, column_value: ${activeUimsLabel}) { name }}`
-
+            console.log("Running a query for most recent job numbers based on UIMS label...")
             monday.api(numbersQuery).then(res => {
               const lastNumber = res.data.items_by_column_values.pop().name
-              console.log(lastNumber)
-              const splitNumber = lastNumber.split('-')
-              const newNumber = `${splitNumber[0]}-${+splitNumber[1] + 1}`
-              console.log(newNumber)
-
+              console.log(`The latest job number was: ${lastNumber}`)
+              const newNumber = incrementJobNumber(lastNumber)
+              console.log(`The new job number will be: ${newNumber}`)
               setJobNumber(newNumber)
               return JSON.stringify(newNumber)
             }).then(newJobNumber => {
-              // for some reason we need to stringify twice for Monday api to understand
-              const mutationString = JSON.stringify(JSON.stringify(jobEdits))
+              const updateJob = {
+                ...jobEdits,
+                [uimsColId]: { label: activeUimsLabel }
+              }
+              const mutationString = JSON.stringify(JSON.stringify(updateJob))
+              console.log(updateJob)
               const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${newJobNumber}, column_values: ${mutationString}) { id }}`
 
               monday.api(createJobQuery).then(res => {
-                console.log(stringifiedJobNumber)
+                console.log(`Creating a new item with job number: ${newJobNumber}`)
+                console.log(res)
                 return res.data.create_item.id
               }).then(parentItemId => {
                 const numOfSubitems = subitemEdits.length
@@ -339,6 +350,8 @@ const App = () => {
                           type: "positive",
                           open: true,
                         })
+                        resetUims()
+
                         return setSaving(false)
                       }
                     })
@@ -350,18 +363,23 @@ const App = () => {
                     type: "positive",
                     open: true,
                   })
+                  resetUims()
+
                   return setSaving(false)
                 }
-              }).catch(error => {
-                console.log(error)
-                setAppError("Could not process. Please refresh and try again.")
-                setSaving(false)
               })
+            }).catch(error => {
+              console.log(error)
+              setAppError("Could not process. Please refresh and try again.")
+              setSaving(false)
             })
           }
           else {
-            // for some reason we need to stringify twice for Monday api to understand
-            const mutationString = JSON.stringify(JSON.stringify(jobEdits))
+            const updateJob = {
+              ...jobEdits,
+              [uimsColId]: { label: activeUimsLabel }
+            }
+            const mutationString = JSON.stringify(JSON.stringify(updateJob))
             const createJobQuery = `mutation { create_item (board_id: ${boardId}, item_name: ${stringifiedJobNumber}, column_values: ${mutationString}) { id }}`
 
             monday.api(createJobQuery).then(res => {
@@ -384,6 +402,8 @@ const App = () => {
                         type: "positive",
                         open: true,
                       })
+                      resetUims()
+
                       return setSaving(false)
                     }
                   })
@@ -395,6 +415,8 @@ const App = () => {
                   type: "positive",
                   open: true,
                 })
+                resetUims()
+
                 return setSaving(false)
               }
             }).catch(error => {
@@ -544,6 +566,20 @@ const App = () => {
     ])
   }
 
+  const incrementJobNumber = jobNum => {
+    const splitName = jobNum.split('-')
+    const newName = `${splitName[0]}-${+splitName[1] + 1}`
+
+    return newName
+  }
+
+  const resetUims = () => {
+    setSubitems(parseSubitemsDefault(subitemFields))
+    setJobDetails(parseColumnsDefault(columnFields))
+    setJobId("")
+    setJobNumber(currentNum => incrementJobNumber(currentNum))
+  }
+
   const splitColumnFields = columns => {
     // break up columns by type
     const numOfCols = columns.length
@@ -566,7 +602,9 @@ const App = () => {
           setPeopleFields(prevFields => [...prevFields, columns[i]])
           break
         case "color":
-          setColorFields(prevFields => [...prevFields, columns[i]])
+          if (columns[i].title !== "UIMS") {
+            setColorFields(prevFields => [...prevFields, columns[i]])
+          }
           break
         case "numeric":
           setNumericFields(prevFields => [...prevFields, columns[i]])
