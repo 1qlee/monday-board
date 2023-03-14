@@ -475,6 +475,7 @@ const App = () => {
     const stringifiedValue = String(value)
     setJobNumberValidation({})
     setAppError("")
+    setJobId("")
     setJobNumber(stringifiedValue)
   }
 
