@@ -2,10 +2,11 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Combobox } from "monday-ui-react-core";
 import { CloseSmall } from "monday-ui-react-core/icons";
 
-const BoardRelation = ({
+const Accounts = ({
   changeJobEdits,
   field,
   jobDetails,
+  setAccountDetails,
   monday,
   setConnectedBoard,
 }) => {
@@ -20,7 +21,7 @@ const BoardRelation = ({
   }
 
   // function to parse columnFields and get the board ID of the related board from settings_str
-  const getRelatedBoardId = () => {
+  const getAccountBoardId = () => {
     if (field.settings_str) {
       const settings = JSON.parse(field.settings_str)
 
@@ -30,7 +31,7 @@ const BoardRelation = ({
     }
   }
 
-  const boardId = getRelatedBoardId()
+  const boardId = getAccountBoardId()
 
   useEffect(() => {
     // on render we will check if we already have some value from Monday populating this connected board field
@@ -47,13 +48,13 @@ const BoardRelation = ({
         const formattedResults = []
 
         for (let i = 0; i < results.length; i++) {
-          const { name, id, type } = results[i]
+          const { name, id, column_values } = results[i]
 
           formattedResults.push({
             id: i,
             label: name,
             itemId: id,
-            type: type,
+            column_values: column_values,
           })
         }
 
@@ -63,7 +64,7 @@ const BoardRelation = ({
     }).catch(error => {
       setLoading(false)
     })
-  }, [field, jobDetails[field.id]])
+  }, [jobDetails[field.id], field])
 
   // fires when the filter input changes where value is user input
   const handleFilterChange = useCallback(value => {
@@ -87,14 +88,15 @@ const BoardRelation = ({
   const checkItemExists = value => {
     // use the user inputted value and check against saved boardItems in state
     // we are doing a string match because item ID is not available from this event handler
-    const doesItemExist = boardItems.find(item => String(item.label) === value)
+    const existingItem = boardItems.find(item => String(item.label) === value)
 
-    if (checkObject(doesItemExist)) {
+    if (checkObject(existingItem)) {
       const itemsArray = []
-      const { itemId } = doesItemExist
+      const { itemId } = existingItem
       itemsArray[0] = +itemId
 
       changeJobEdits({ item_ids: itemsArray })
+      setAccountDetails(existingItem.column_values)
       
       // don't set the board id in connectedBoard
       setConnectedBoard({
@@ -147,7 +149,7 @@ const BoardRelation = ({
         clearFilterOnSelection={false}
         id={field.id}
         loading={loading}
-        maxOptionsWithoutScroll={4}
+        maxOptionsWithoutScroll={5}
         noResultsRenderer={handleNoResults}
         onClick={handleItemSelection}
         onFilterChanged={handleFilterChange}
@@ -176,4 +178,4 @@ const BoardRelation = ({
   )
 }
 
-export default BoardRelation
+export default Accounts

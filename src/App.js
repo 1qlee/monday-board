@@ -8,6 +8,7 @@ import useKeyboardShortcut from "use-keyboard-shortcut"
 import { Flex, TextField, Button, Loader, AlertBanner, AlertBannerText, Box, Toast, IconButton, RadioButton } from "monday-ui-react-core"
 import ColumnField from "./components/ColumnField"
 import SubitemField from "./components/SubitemField"
+import AccountInfo from "./components/AccountInfo"
 
 const monday = mondaySdk();
 
@@ -66,6 +67,7 @@ const App = () => {
   const uimsLabels = ["UP", "QU", "CL"]
   const [activeUimsLabel, setActiveUimsLabel] = useState("UP")
   const [uimsColId, setUimsColId] = useState("")
+  const [accountDetails, setAccountDetails] = useState([])
 
   flushHeldKeys()
 
@@ -637,6 +639,7 @@ const App = () => {
           jobDetails={jobDetails}
           jobEdits={jobEdits}
           monday={monday}
+          setAccountDetails={setAccountDetails}
           setConnectedBoard={setConnectedBoard}
           setJobDetails={setJobDetails}
           setJobEdits={setJobEdits}
@@ -705,8 +708,8 @@ const App = () => {
           <Flex
             gap={24}
             direction="Column"
-            align="Start"
-            justify="Start"
+            align={Flex.align.START}
+            justify={Flex.justify.START}
           >
             <Flex
               align={Flex.align.START}
@@ -770,6 +773,9 @@ const App = () => {
                   </Button>
                 </Flex>
               </Box>
+              <AccountInfo 
+                accountDetails={accountDetails}
+              />
             </Flex>
             <table>
               <thead>

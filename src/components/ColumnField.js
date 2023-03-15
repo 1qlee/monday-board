@@ -1,6 +1,6 @@
 import React from "react";
 import { TextField } from "monday-ui-react-core"
-import BoardRelation from "./BoardRelation";
+import Accounts from "./Accounts";
 import Status from "./Status"
 import Calendar from "./Calendar";
 import People from "./People";
@@ -10,6 +10,7 @@ const ColumnField = ({
   jobDetails, 
   jobEdits,
   monday,
+  setAccountDetails,
   setConnectedBoard,
   setJobDetails,
   setJobEdits,
@@ -46,10 +47,11 @@ const ColumnField = ({
         />
       )}
       {field.type === "board-relation" && (
-        <BoardRelation 
+        <Accounts 
           changeJobEdits={changeJobEdits}
           field={field}
           jobDetails={jobDetails}
+          setAccountDetails={setAccountDetails}
           monday={monday} 
           setConnectedBoard={setConnectedBoard}
         />
