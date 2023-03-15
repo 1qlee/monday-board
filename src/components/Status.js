@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Chips, DialogContentContainer, List, ListItem } from "monday-ui-react-core";
+import OutsideClickHandler from "react-outside-click-handler";
 
 const Status = ({
   changeJobEdits,
@@ -69,28 +70,32 @@ const Status = ({
   return (
     <>
       <Chips
-        className="is-active custom-chip-component"
+        className="is-active custom-chip-component--table"
         color={activeLabel.style.color}
         label={activeLabel.text}
         readOnly
         onClick={e => setShowList(!showList)}
       />
       {showList && (
-        <DialogContentContainer className="floating-menu">
-          <List
-            dense={true}
-          >
-            {allLabels.map(label => (
-              <Chips
-                className={label.text === activeLabel.text ? "is-active custom-chip-component" : "custom-chip-component"}
-                color={label.text === activeLabel.text ? label.style.color : "EXPLOSIVE"}
-                label={label.text}
-                readOnly
-                onClick={e => handleChipsClick(e, label)}
-              />
-            ))}
-          </List>
-        </DialogContentContainer>
+        <OutsideClickHandler
+          onOutsideClick={() => setShowList(false)}
+        >
+          <DialogContentContainer className="floating-menu">
+            <List
+              dense={true}
+            >
+              {allLabels.map(label => (
+                <Chips
+                  className={label.text === activeLabel.text ? "is-active custom-chip-component--menu" : "custom-chip-component--menu"}
+                  color={label.text === activeLabel.text ? label.style.color : "EXPLOSIVE"}
+                  label={label.text}
+                  readOnly
+                  onClick={e => handleChipsClick(e, label)}
+                />
+              ))}
+            </List>
+          </DialogContentContainer>
+        </OutsideClickHandler>
       )}
     </>
   )

@@ -281,7 +281,7 @@ input {
   color: var(--text-color-on-primary);
 }
 
-.custom-chip-component {
+.custom-chip-component--table {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   display: flex !important;
   height: 34px !important;
@@ -290,6 +290,24 @@ input {
   border-radius: 0 !important;
   font: var(--font-general-label);
   margin: 0 !important;
+}
+
+.custom-chip-component--menu {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
+  font: var(--font-general-label);
+  box-sizing: border-box;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  margin: 0;
+}
+
+.custom-chip-component--menu:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+.custom-chip-component--menu:hover {
+  background-color: var(--primary-background-hover-color);
 }
 
 .date-picker-component {
@@ -329,12 +347,11 @@ input {
 .floating-menu {
   box-sizing: border-box;
   left: 50%;
-  padding: 4px !important;
+  padding: 8px !important;
   position: absolute;
   top: calc(100% + 4px);
   transform: translateX(-50%);
   z-index: 100;
-  height: 112px;
   min-width: 100%;
 }
 
@@ -354,4 +371,15 @@ input {
 .padded-border-bottom span {
   --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   font: var(--font-general-label);
+}
+
+.text-button {
+  margin-left: 8px;
+  color: var(--color-link_color);
+  font-weight: 400;
+}
+
+.text-button:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }

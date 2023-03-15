@@ -33,6 +33,7 @@ const App = () => {
   const [jobDetails, setJobDetails] = useState({})
   const [jobEdits, setJobEdits] = useState({})
   const [jobNumber, setJobNumber] = useState("")
+  const [nextJobNumber, setNextJobNumber] = useState("")
   const [jobId, setJobId] = useState(0)
   const [subitemBoardId, setSubitemBoardId] = useState(0)
   const [subitemEdits, setSubitemEdits] = useState([])
@@ -69,7 +70,7 @@ const App = () => {
   flushHeldKeys()
 
   useEffect(() => {
-    monday.execute("valueCreatedForUser");
+    monday.execute("valueCreatedForUser")
 
     // get the current boardId from Monday then run a query to get all columns from that board
     // then filter those columns by inputtable fields (e.g. text)
@@ -90,28 +91,9 @@ const App = () => {
         const subitemsColumn = columns.filter(col => col.id === "subitems")
         // filter out the UIMS column to create incremented names
         const uimsColumn = columns.filter(col => col.title === "UIMS")
-        console.log(uimsColumn)
+
         setUimsColId(uimsColumn[0].id)
-        const namesQuery = `query { items_by_column_values(board_id: ${currentBoardId}, column_id: ${uimsColumn[0].id}, column_value: ${activeUimsLabel}) { name }}`
-
-        // auto populate the name field with an incremented uims label identifier
-        monday.api(namesQuery).then(res => {
-          const allNames = res.data.items_by_column_values
-
-          if (allNames.length > 0) {
-            console.log(allNames)
-            const lastName = res.data.items_by_column_values.pop().name
-            console.log(lastName)
-            
-            setJobNumber(incrementJobNumber(lastName))
-          }
-          else {
-            const currentYear = new Date().getFullYear()
-
-            setJobNumber(`${activeUimsLabel}${currentYear}-1`)
-          }
-        })
-
+        getJobNumber(currentBoardId, uimsColumn[0].id, activeUimsLabel)
         setColumnFields(filteredColumns)
         splitColumnFields(filteredColumns)
         setJobDetails(parseColumnsDefault(filteredColumns)) // manually set default values for certain fields
@@ -146,6 +128,7 @@ const App = () => {
 
     // if user has inputted a job number, run a query for it
     if (jobNumber) {
+      console.log(`Getting ${jobNumber}...`)
       setFetching(true)
       const stringifiedJobNumber = JSON.stringify(jobNumber)
       const jobNumberQuery = `query { items_by_column_values (board_id: ${boardId}, column_id: name, column_value: ${stringifiedJobNumber}) { id column_values { text type title value id } subitems { id name column_values { text type title value id }}}}`
@@ -255,7 +238,7 @@ const App = () => {
                       type: "positive",
                       open: true,
                     })
-                    resetUims()
+                    resetUims(true)
 
                     return setSaving(false)
                   }
@@ -272,7 +255,7 @@ const App = () => {
                       type: "positive",
                       open: true,
                     })
-                    resetUims()
+                    resetUims(true)
 
                     return setSaving(false)
                   }
@@ -319,6 +302,7 @@ const App = () => {
               const newNumber = incrementJobNumber(lastNumber)
               console.log(`The new job number will be: ${newNumber}`)
               setJobNumber(newNumber)
+              setNextJobNumber(newNumber)
               return JSON.stringify(newNumber)
             }).then(newJobNumber => {
               const updateJob = {
@@ -350,7 +334,7 @@ const App = () => {
                           type: "positive",
                           open: true,
                         })
-                        resetUims()
+                        resetUims(true)
 
                         return setSaving(false)
                       }
@@ -363,7 +347,7 @@ const App = () => {
                     type: "positive",
                     open: true,
                   })
-                  resetUims()
+                  resetUims(true)
 
                   return setSaving(false)
                 }
@@ -403,7 +387,7 @@ const App = () => {
                         type: "positive",
                         open: true,
                       })
-                      resetUims()
+                      resetUims(true)
 
                       return setSaving(false)
                     }
@@ -416,7 +400,7 @@ const App = () => {
                   type: "positive",
                   open: true,
                 })
-                resetUims()
+                resetUims(true)
 
                 return setSaving(false)
               }
@@ -435,6 +419,30 @@ const App = () => {
         status: "error",
       })
     }
+  }
+
+  const getJobNumber = (board_id, column_id, column_value) => {
+    const namesQuery = `query { items_by_column_values(board_id: ${board_id}, column_id: ${column_id}, column_value: ${column_value}) { name }}`
+
+    // auto populate the name field with an incremented uims label identifier
+    monday.api(namesQuery).then(res => {
+      const allNames = res.data.items_by_column_values
+
+      if (allNames.length > 0) {
+        const lastName = res.data.items_by_column_values.pop().name
+        const newNumber = incrementJobNumber(lastName)
+
+        setJobNumber(newNumber)
+        setNextJobNumber(newNumber)
+      }
+      else {
+        const currentYear = new Date().getFullYear()
+        const newNumber = `${activeUimsLabel}${currentYear}-1`
+
+        setJobNumber(newNumber)
+        setNextJobNumber(newNumber)
+      }
+    })
   }
 
   const parseColumns = array => {
@@ -574,11 +582,18 @@ const App = () => {
     return newName
   }
 
-  const resetUims = () => {
+  const resetUims = reset => {
     setSubitems(parseSubitemsDefault(subitemFields))
     setJobDetails(parseColumnsDefault(columnFields))
     setJobId("")
-    setJobNumber(currentNum => incrementJobNumber(currentNum))
+    setJobNumberValidation({
+      text: "",
+      status: "",
+    })
+    
+    if (reset) {
+      setJobNumber(nextJobNumber)
+    }
   }
 
   const splitColumnFields = columns => {
@@ -653,6 +668,11 @@ const App = () => {
     }
   }
 
+  const handleUimsLabel = label => {
+    setActiveUimsLabel(label)
+    getJobNumber(boardId, uimsColId, label)
+  }
+
   return (
     <>
       {loading ? (
@@ -701,7 +721,7 @@ const App = () => {
                   className="padded-border-bottom"
                 >
                   {uimsLabels.map(label => (
-                    <div onClick={() => setActiveUimsLabel(label)}>
+                    <div onClick={() => handleUimsLabel(label)}>
                       <RadioButton 
                         text={label}
                         checked={label === activeUimsLabel}
@@ -712,7 +732,19 @@ const App = () => {
                 <label
                   className="label-header"
                   htmlFor="job-number"
-                >Job number</label>
+                >
+                  <span>Job number</span>
+                  <span className="text-button">
+                    <a onClick={() => resetUims(false)}>
+                      Clear
+                    </a>
+                  </span>
+                    <span className="text-button">
+                      <a onClick={() => resetUims(true)}>
+                        New
+                      </a>
+                    </span>
+                </label>
                 <Flex
                   align="start"
                 >
