@@ -133,9 +133,11 @@ input {
 
 /* Monday Style Overrides */
 .virtualized-list--wrapper {
+  --font-general-label: 400 12px/24px Figtree, Roboto, Rubik, Noto Kufi Arabic, Noto Sans JP, sans-serif;
   border-radius: 4px;
   box-shadow: var(--box-shadow-small);
   box-sizing: border-box;
+  font: var(--font-general-label);
   overflow-x: hidden !important;
   position: absolute !important;
   top: 100% !important;
@@ -356,11 +358,14 @@ input {
 }
 
 .label-header {
-  width: 100%;
   border-bottom: 1px solid var(--ui-border-color);
   padding: 4px 8px;
   font-weight: 700;
   background: var(--grey-background-color);
+}
+
+.has-border-top {
+  border-top: 1px solid var(--ui-border-color);
 }
 
 .padded-border-bottom {
@@ -382,4 +387,12 @@ input {
 .text-button:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+.already-border-left {
+  margin-left: -1px;
+}
+
+.regular-overflow {
+  overflow: inherit !important;
 }

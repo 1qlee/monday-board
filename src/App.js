@@ -29,7 +29,7 @@ const App = () => {
   const [peopleFields, setPeopleFields] = useState([])
   const [numericFields, setNumericFields] = useState([])
   const [dateFields, setDateFields] = useState([])
-  const [relationFields, setRelationFields] = useState([])
+  const [boardRelationField, setBoardRelationField] = useState([])
   const [colorFields, setColorFields] = useState([])
   const [jobDetails, setJobDetails] = useState({})
   const [jobEdits, setJobEdits] = useState({})
@@ -67,7 +67,9 @@ const App = () => {
   const uimsLabels = ["UP", "QU", "CL"]
   const [activeUimsLabel, setActiveUimsLabel] = useState("UP")
   const [uimsColId, setUimsColId] = useState("")
-  const [accountDetails, setAccountDetails] = useState([])
+  const [accountDetails, setAccountDetails] = useState({})
+  const [accountEdits, setAccountEdits] = useState({})
+  const [accountFields, setAccountFields] = useState([])
 
   flushHeldKeys()
 
@@ -103,7 +105,6 @@ const App = () => {
         // extract subitems board id 
         return JSON.parse(subitemsColumn[0].settings_str).boardIds[0]
       }).then(parsedBoardId => {
-        console.log(parsedBoardId)
         setSubitemBoardId(parsedBoardId)
         // query for all columns in the subitem board
         const subitemsQuery = `query { boards (ids: ${parsedBoardId}) { columns { title type id settings_str }}}`
@@ -185,8 +186,11 @@ const App = () => {
   const saveJob = () => {
     // check if we need to create an item in a connected board
     if (connectedBoard.id) {
+      console.log(accountEdits)
       const stringifiedItemName = JSON.stringify(connectedBoard.name)
-      const createItemQuery = `mutation { create_item (board_id: ${connectedBoard.id}, item_name: ${stringifiedItemName}) { id }}`
+      const mutationString = JSON.stringify(JSON.stringify(accountEdits))
+      console.log(mutationString)
+      const createItemQuery = `mutation { create_item (board_id: ${connectedBoard.id}, item_name: ${stringifiedItemName}, column_values: ${mutationString}) { id }}`
       const itemsArray = []
 
       monday.api(createItemQuery).then(res => {
@@ -611,7 +615,7 @@ const App = () => {
           setLongTextFields(prevFields => [...prevFields, columns[i]])
           break
         case "board-relation":
-          setRelationFields(prevFields => [...prevFields, columns[i]])
+          setBoardRelationField(prevFields => [...prevFields, columns[i]])
           break
         case "date":
           setDateFields(prevFields => [...prevFields, columns[i]])
@@ -718,6 +722,7 @@ const App = () => {
               <Box
                 border={Box.borders.DEFAULT}
                 padding={Box.paddings.NONE}
+                className="regular-overflow"
               >
                 <Flex
                   gap={16}
@@ -725,62 +730,99 @@ const App = () => {
                 >
                   {uimsLabels.map(label => (
                     <div onClick={() => handleUimsLabel(label)}>
-                      <RadioButton 
+                      <RadioButton
                         text={label}
                         checked={label === activeUimsLabel}
                       />
                     </div>
                   ))}
                 </Flex>
-                <label
-                  className="label-header"
-                  htmlFor="job-number"
-                >
-                  <span>Job number</span>
-                  <span className="text-button">
-                    <a onClick={() => resetUims(false)}>
-                      Clear
-                    </a>
-                  </span>
-                    <span className="text-button">
-                      <a onClick={() => resetUims(true)}>
-                        New
-                      </a>
-                    </span>
-                </label>
                 <Flex
-                  align="start"
+                  align={Flex.align.START}
+                  justify={Flex.justify.START}
                 >
-                  <TextField
-                    id="job-number"
-                    value={jobNumber}
-                    onChange={handleJobNumber}
-                    onKeyDown={e => e.key === "Enter" && getJob()}
-                    placeholder="Leave blank to create a new job"
-                    iconName={jobNumberValidation.status === "success" && Check}
-                    className={jobNumberValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
-                    validation={jobNumberValidation}
-                  />
-                  <Button
-                    disabled={fetching || saving}
-                    loading={fetching}
-                    leftFlat
-                    rightFlat
-                    onClick={() => getJob()}
-                    size="small"
+                  <Box
+                    border={Box.borders.DEFAULT}
+                    padding={Box.paddings.NONE}
+                    className="already-border-left"
                   >
-                    Search
-                  </Button>
+                    <label
+                      className="label-header"
+                      htmlFor="job-number"
+                    >
+                      <span>Job number</span>
+                      <span className="text-button">
+                        <a onClick={() => resetUims(false)}>
+                          Clear
+                        </a>
+                      </span>
+                      <span className="text-button">
+                        <a onClick={() => resetUims(true)}>
+                          New
+                        </a>
+                      </span>
+                    </label>
+                    <Flex
+                      align="start"
+                    >
+                      <TextField
+                        id="job-number"
+                        value={jobNumber}
+                        onChange={handleJobNumber}
+                        onKeyDown={e => e.key === "Enter" && getJob()}
+                        placeholder="Leave blank to create a new job"
+                        iconName={jobNumberValidation.status === "success" && Check}
+                        className={jobNumberValidation.status === "success" ? "has-icon-success custom-input-component" : "custom-input-component"}
+                        validation={jobNumberValidation}
+                      />
+                      <Button
+                        disabled={fetching || saving}
+                        loading={fetching}
+                        leftFlat
+                        rightFlat
+                        onClick={() => getJob()}
+                        size="small"
+                      >
+                        Search
+                      </Button>
+                    </Flex>
+                  </Box>
+                  <Box
+                    border={Box.borders.DEFAULT}
+                    padding={Box.paddings.NONE}
+                    className="already-border-left regular-overflow"
+                  >
+                    {boardRelationField.map(field => (
+                      <label className="label-header" htmlFor={field.id}>{field.title}</label>
+                    ))}
+                    {boardRelationField.map(field => (
+                      <ColumnField
+                        accountFields={accountFields}
+                        field={field}
+                        jobDetails={jobDetails}
+                        jobEdits={jobEdits}
+                        monday={monday}
+                        setAccountFields={setAccountFields}
+                        setAccountDetails={setAccountDetails}
+                        setConnectedBoard={setConnectedBoard}
+                        setJobDetails={setJobDetails}
+                        setJobEdits={setJobEdits}
+                      />
+                    ))}
+                  </Box>
+                  <AccountInfo
+                    accountDetails={accountDetails}
+                    accountEdits={accountEdits}
+                    accountFields={accountFields}
+                    setAccountEdits={setAccountEdits}
+                    setAccountDetails={setAccountDetails}
+                  />
                 </Flex>
               </Box>
-              <AccountInfo 
-                accountDetails={accountDetails}
-              />
             </Flex>
             <table>
               <thead>
                 {textFields.map(field => returnColumnHeaders(field))}
-                {relationFields.map(field => returnColumnHeaders(field))}
                 {dateFields.map(field => returnColumnHeaders(field))}
                 {peopleFields.map(field => returnColumnHeaders(field))}
                 {colorFields.map(field => returnColumnHeaders(field))}
@@ -788,7 +830,6 @@ const App = () => {
               <tbody>
                 <tr>
                   {textFields.map(field => returnColumnFields(field))}
-                  {relationFields.map(field => returnColumnFields(field))}
                   {dateFields.map(field => returnColumnFields(field))}
                   {peopleFields.map(field => returnColumnFields(field))}
                   {colorFields.map(field => returnColumnFields(field))}

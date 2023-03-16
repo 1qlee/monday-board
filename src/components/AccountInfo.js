@@ -1,47 +1,63 @@
 import React from "react"
-import { Box, Flex } from "monday-ui-react-core"
+import { Box } from "monday-ui-react-core"
 import { TextField } from "monday-ui-react-core"
-import Status from "./Status"
 
 const AccountInfo = ({
-  accountDetails
+  accountDetails,
+  accountEdits,
+  accountFields,
+  setAccountEdits,
+  setAccountDetails,
 }) => {
 
+  const handleChangeValue = (value, field) => {
+    setAccountDetails({
+      ...accountDetails,
+      [field.id]: value
+    })
+    setAccountEdits({
+      ...accountEdits,
+      [field.id]: value,
+    })
+  }
+
   return (
-    <Box
-      border={Box.borders.DEFAULT}
-      padding={Box.paddings.NONE}
-    >
-      {accountDetails.map(column => (
+    <>
+      {accountFields.map(field => (
         <>
-          {column.title === "Company" && (
-            <Flex
-              align={Flex.align.START}
-              justify={Flex.justify.SPACE_BETWEEN}
+          {field.type === "text" && (
+            <Box
+              border={Box.borders.DEFAULT}
+              padding={Box.paddings.NONE}
+              className="already-border-left"
             >
-              <label>{column.title}</label>
+              <label className="label-header" htmlFor={field.id}>Company</label>
               <TextField
-                id={column.id}
-                value={column.text}
+                className="custom-input-component"
+                id={field.id}
+                value={accountDetails[field.id].text}
+                onChange={value => handleChangeValue(value, field)}
               />
-            </Flex>
+            </Box>
           )}
-          {column.title === "Address" && (
-            <Flex
-              align={Flex.align.START}
-              justify={Flex.justify.SPACE_BETWEEN}
+          {field.type === "long-text" && (
+            <Box
+              border={Box.borders.DEFAULT}
+              padding={Box.paddings.NONE}
+              className="already-border-left"
             >
-              <label>{column.title}</label>
+              <label className="label-header" htmlFor={field.id}>Address</label>
               <textarea
-                id={column.id}
+                id={field.id}
                 rows={3}
-                value={column.text}
-              ></textarea>
-            </Flex>
+                value={accountDetails[field.id].text}
+                onChange={e => handleChangeValue(e.target.value, field)}
+              />
+            </Box>
           )}
         </>
       ))}
-    </Box>
+    </>
   )
 }
 

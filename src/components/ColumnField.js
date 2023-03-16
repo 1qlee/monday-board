@@ -6,11 +6,13 @@ import Calendar from "./Calendar";
 import People from "./People";
 
 const ColumnField = ({ 
+  accountFields,
   field, 
   jobDetails, 
   jobEdits,
   monday,
   setAccountDetails,
+  setAccountFields,
   setConnectedBoard,
   setJobDetails,
   setJobEdits,
@@ -48,12 +50,14 @@ const ColumnField = ({
       )}
       {field.type === "board-relation" && (
         <Accounts 
+          accountFields={accountFields}
           changeJobEdits={changeJobEdits}
           field={field}
           jobDetails={jobDetails}
-          setAccountDetails={setAccountDetails}
           monday={monday} 
+          setAccountDetails={setAccountDetails}
           setConnectedBoard={setConnectedBoard}
+          setAccountFields={setAccountFields}
         />
       )}
       {field.type === "long-text" && (

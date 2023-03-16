@@ -3,11 +3,13 @@ import { Combobox } from "monday-ui-react-core";
 import { CloseSmall } from "monday-ui-react-core/icons";
 
 const Accounts = ({
+  accountFields,
   changeJobEdits,
   field,
   jobDetails,
-  setAccountDetails,
   monday,
+  setAccountDetails,
+  setAccountFields,
   setConnectedBoard,
 }) => {
   const [boardItems, setBoardItems] = useState([])
@@ -15,6 +17,7 @@ const Accounts = ({
   const [loading, setLoading] = useState(true)
   const [inputValue, setInputValue] = useState("")
   const inputRef = useRef(null)
+  const colTypes = new Set(["text", "long-text"])
 
   const checkObject = object => {
     return object && object.constructor === Object && Object.keys(object).length > 0
@@ -41,30 +44,67 @@ const Accounts = ({
       setInputValue(connectedBoardText)
       checkItemExists(connectedBoardText)
     }
-    // get all items from this connected board
-    monday.api(`query { boards (ids: ${boardId}) { items { id name column_values { text type title value id }}}}`).then(res => {
-      if (res.data.boards[0].items.length > 0) {
-        const results = res.data.boards[0].items
-        const formattedResults = []
+    const accountItemsQuery = `query { boards (ids: ${boardId}) { items { id name column_values { text type title value id }}}}`
+    const accountFieldsQuery = `query { boards (ids: ${boardId}) { columns { title type id settings_str }}}`
 
-        for (let i = 0; i < results.length; i++) {
-          const { name, id, column_values } = results[i]
+    monday.api(accountFieldsQuery).then(res => {
+      const columns = res.data.boards[0].columns
+      const filteredColumns = columns.filter(col => colTypes.has(col.type))
 
-          formattedResults.push({
-            id: i,
-            label: name,
-            itemId: id,
-            column_values: column_values,
-          })
+      setAccountFields(filteredColumns)
+      setAccountDetails(createAccountDetails(filteredColumns))
+    }).then(() => {
+      // get all items from this connected board
+      monday.api(accountItemsQuery).then(res => {
+        if (res.data.boards[0].items.length > 0) {
+          const results = res.data.boards[0].items
+          const formattedResults = []
+
+          for (let i = 0; i < results.length; i++) {
+            const { name, id, column_values } = results[i]
+
+            formattedResults.push({
+              id: i,
+              label: name,
+              itemId: id,
+              column_values: column_values,
+            })
+          }
+
+          setBoardItems(formattedResults)
+          setLoading(false)
         }
-
-        setBoardItems(formattedResults)
-        setLoading(false)
-      }
+      })
     }).catch(error => {
       setLoading(false)
     })
   }, [jobDetails[field.id], field])
+
+  const createAccountDetails = (columns, withItem) => {
+    const defaultValues = {}
+
+    if (withItem) {
+      const { label, column_values } = columns
+      const columnsLength = column_values.length
+
+      for (let i = 0; i < columnsLength; i++) {
+        defaultValues[column_values[i].id] = column_values[i]
+      }
+
+      defaultValues["name"] = label
+    }
+    else {
+      const columnsLength = columns.length
+
+      for (let i = 0; i < columnsLength; i++) {
+        defaultValues[columns[i].id] = {
+          text: ""
+        }
+      }
+    }
+
+    return defaultValues
+  }
 
   // fires when the filter input changes where value is user input
   const handleFilterChange = useCallback(value => {
@@ -96,7 +136,7 @@ const Accounts = ({
       itemsArray[0] = +itemId
 
       changeJobEdits({ item_ids: itemsArray })
-      setAccountDetails(existingItem.column_values)
+      setAccountDetails(createAccountDetails(existingItem, true))
       
       // don't set the board id in connectedBoard
       setConnectedBoard({
@@ -107,6 +147,7 @@ const Accounts = ({
     }
     // else set the board id in connectedBoard so we know that we need to create an item in that board
     else {
+      setAccountDetails(createAccountDetails(accountFields))
       setConnectedBoard({
         id: boardId,
         name: value,
@@ -129,6 +170,7 @@ const Accounts = ({
 
   const handleDummyInputClose = () => {
     const inputDOM = inputRef.current.children[0].children[0].children[0].children[0].children[0]
+    setAccountDetails(createAccountDetails(accountFields))
 
     setTimeout(() => {
       inputDOM.value = ""
